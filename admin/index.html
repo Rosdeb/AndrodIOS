@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>IconForge Insights</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Outfit:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/admin/styles.css" />
+  </head>
+  <body class="theme-admin">
+    <div class="admin-shell">
+      <aside class="admin-sidebar">
+        <div class="brand-lockup brand-lockup-admin">
+          <span class="brand-mark">IF</span>
+          <div>
+            <p class="eyebrow">Business Intelligence Layer</p>
+            <h1>IconForge Insights</h1>
+          </div>
+        </div>
+        <nav class="admin-nav">
+          <a class="is-active" href="#overview">Overview</a>
+          <a href="#countries">Countries</a>
+          <a href="#funnel">Funnel</a>
+          <a href="#exports">Exports</a>
+          <a href="#activity">Activity</a>
+          <a href="/">Back to studio</a>
+        </nav>
+      </aside>
+
+      <main class="admin-main">
+        <header class="admin-topbar">
+          <div>
+            <p class="eyebrow">Admin Panel</p>
+            <h2>Simple to scan, advanced where it matters</h2>
+          </div>
+          <div class="admin-actions">
+            <input id="admin-key-input" type="password" value="dev-admin-key" />
+            <button class="button button-primary" id="load-dashboard-button">Load Dashboard</button>
+          </div>
+        </header>
+
+        <section class="admin-grid" id="overview">
+          <article class="metric-card">
+            <span>Total Visitors</span>
+            <strong id="metric-visitors">0</strong>
+          </article>
+          <article class="metric-card">
+            <span>Total Projects</span>
+            <strong id="metric-projects">0</strong>
+          </article>
+          <article class="metric-card">
+            <span>Total Exports</span>
+            <strong id="metric-exports">0</strong>
+          </article>
+          <article class="metric-card">
+            <span>Live Users</span>
+            <strong id="metric-live-users">0</strong>
+          </article>
+        </section>
+
+        <section class="dashboard-layout">
+          <article class="panel dashboard-panel">
+            <div class="panel-heading">
+              <h3>Traffic + Export Trend</h3>
+              <p>Last 7 days based on backend analytics.</p>
+            </div>
+            <div class="trend-chart" id="trend-chart"></div>
+          </article>
+
+          <article class="panel dashboard-panel" id="countries">
+            <div class="panel-heading">
+              <h3>Top Countries</h3>
+              <p>Where your icon generator is being used most.</p>
+            </div>
+            <div class="country-list" id="country-list"></div>
+          </article>
+
+          <article class="panel dashboard-panel" id="funnel">
+            <div class="panel-heading">
+              <h3>Usage Funnel</h3>
+              <p>Track user movement from visit to export.</p>
+            </div>
+            <div class="funnel-list" id="funnel-list"></div>
+          </article>
+
+          <article class="panel dashboard-panel" id="exports">
+            <div class="panel-heading">
+              <h3>Platform Split</h3>
+              <p>Quick view of Android, iOS, and combined exports.</p>
+            </div>
+            <div class="split-cards">
+              <div class="split-card split-android">
+                <span>Android</span>
+                <strong id="platform-android">0</strong>
+              </div>
+              <div class="split-card split-ios">
+                <span>iOS</span>
+                <strong id="platform-ios">0</strong>
+              </div>
+              <div class="split-card split-both">
+                <span>Both</span>
+                <strong id="platform-both">0</strong>
+              </div>
+            </div>
+          </article>
+
+          <article class="panel dashboard-panel" id="activity">
+            <div class="panel-heading">
+              <h3>Recent Activity</h3>
+              <p>Fresh product events coming from the analytics feed.</p>
+            </div>
+            <div class="activity-list" id="activity-list"></div>
+          </article>
+        </section>
+      </main>
+    </div>
+
+    <script type="module" src="/admin/admin.js"></script>
+  </body>
+</html>

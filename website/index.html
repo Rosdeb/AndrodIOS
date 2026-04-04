@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>IconForge Studio</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Outfit:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/website/styles.css" />
+  </head>
+  <body class="theme-public">
+    <div class="site-shell">
+      <header class="workspace-header">
+        <div class="brand-lockup">
+          <span class="brand-mark">IF</span>
+          <div>
+            <p class="eyebrow">Live App Icon Workshop</p>
+            <h1>IconForge Studio</h1>
+          </div>
+        </div>
+        <div class="topbar-links">
+          <a href="#export-kit">Exports</a>
+          <a href="/admin">Admin</a>
+        </div>
+      </header>
+
+      <main>
+        <section class="editor-section" id="editor">
+          <div class="section-heading simple-heading">
+            <h2>Live app icon workshop</h2>
+            <p>A custom workspace for color exploration, safe-zone styling, and platform previews.</p>
+          </div>
+
+          <div class="editor-layout">
+            <aside class="panel controls-panel">
+              <div class="panel-heading">
+                <h3>Controls</h3>
+                <p>Simple editor tools for the icon.</p>
+              </div>
+
+              <label class="field">
+                <span>Project Name</span>
+                <input id="project-name" type="text" value="Nebula Notes" />
+              </label>
+
+              <label class="field">
+                <span>Icon Text</span>
+                <input id="icon-text" type="text" value="NN" maxlength="2" />
+              </label>
+
+              <div class="field-group">
+                <label class="field">
+                  <span>Background</span>
+                  <input id="bg-color" type="color" value="#2563eb" />
+                </label>
+                <label class="field">
+                  <span>Foreground</span>
+                  <input id="fg-color" type="color" value="#ffffff" />
+                </label>
+              </div>
+
+              <label class="field">
+                <span>Shape</span>
+                <select id="shape-select">
+                  <option value="rounded-square">Rounded Square</option>
+                  <option value="squircle">Squircle</option>
+                  <option value="circle">Circle</option>
+                </select>
+              </label>
+
+              <label class="field range-field">
+                <div class="range-header">
+                  <span>Zoom</span>
+                  <output id="zoom-output">1.1x</output>
+                </div>
+                <input id="zoom-range" type="range" min="0.8" max="1.4" step="0.05" value="1.1" />
+              </label>
+
+              <label class="field range-field">
+                <div class="range-header">
+                  <span>Padding</span>
+                  <output id="padding-output">18px</output>
+                </div>
+                <input id="padding-range" type="range" min="6" max="32" step="1" value="18" />
+              </label>
+
+              <label class="field range-field">
+                <div class="range-header">
+                  <span>Shadow</span>
+                  <output id="shadow-output">18</output>
+                </div>
+                <input id="shadow-range" type="range" min="0" max="30" step="1" value="18" />
+              </label>
+
+              <label class="field upload-field">
+                <span>Upload icon asset</span>
+                <input id="asset-upload" type="file" accept=".png,.jpg,.jpeg,.svg" />
+                <small id="upload-help">Optional for now. If not uploaded, the preview uses the text icon.</small>
+                <div class="upload-meta" id="upload-meta">No asset selected</div>
+                <button class="button button-secondary button-compact" id="clear-upload-button" type="button" hidden>
+                  Remove Upload
+                </button>
+              </label>
+
+              <div class="action-stack">
+                <button class="button button-primary" id="save-project-button">Save Project</button>
+                <button class="button button-secondary" id="load-preview-button">Refresh Preview</button>
+              </div>
+            </aside>
+
+            <section class="panel canvas-panel">
+              <div class="panel-heading">
+                <h3>Working Canvas</h3>
+                <p>Direct edit area with a safe-zone guide.</p>
+              </div>
+
+              <div class="canvas-display">
+                <div class="safe-zone"></div>
+                <div class="editor-icon icon-shape-rounded-square" id="editor-icon">
+                  <span id="editor-icon-text">NN</span>
+                </div>
+              </div>
+
+              <div class="canvas-footer">
+                <div>
+                  <p class="eyebrow">Preview Mode</p>
+                  <strong>Simple studio view</strong>
+                </div>
+                <div class="legend-row">
+                  <span class="legend-pill">Android ready</span>
+                  <span class="legend-pill">iOS ready</span>
+                </div>
+              </div>
+            </section>
+
+            <aside class="panel preview-panel">
+              <div class="panel-heading">
+                <h3>Platform Preview</h3>
+                <p>See Android and iOS side by side.</p>
+              </div>
+              <div class="live-preview-shell">
+                <div class="variant-row">
+                  <div class="variant-card">
+                    <div class="variant-surface variant-round">
+                      <div class="variant-icon icon-shape-circle" id="variant-round-icon"><span id="variant-round-text">NN</span></div>
+                    </div>
+                    <span>Round Icon</span>
+                  </div>
+                  <div class="variant-card">
+                    <div class="variant-surface variant-squircle-surface">
+                      <div class="variant-icon icon-shape-squircle" id="variant-squircle-icon"><span id="variant-squircle-text">NN</span></div>
+                    </div>
+                    <span>Squircle</span>
+                  </div>
+                  <div class="variant-card">
+                    <div class="variant-surface variant-legacy">
+                      <div class="variant-icon icon-shape-rounded-square" id="variant-legacy-icon"><span id="variant-legacy-text">NN</span></div>
+                    </div>
+                    <span>Legacy Icon</span>
+                  </div>
+                </div>
+
+                <div class="preview-stage preview-stage-large">
+                  <div class="device-wrap">
+                    <div class="ios-phone hero-ios-phone">
+                      <div class="ios-vol-up"></div>
+                      <div class="ios-vol-dn"></div>
+                      <div class="ios-power"></div>
+
+                      <div class="ios-screen-wrap">
+                        <div class="ios-wallpaper ios-wallpaper-light">
+                          <div class="glow1"></div>
+                          <div class="glow2"></div>
+                          <div class="dynamic-island"></div>
+
+                          <div class="home-screen-app home-screen-app-ios">
+                            <div class="app-icon icon-shape-squircle" id="ios-preview-icon">
+                              <span id="ios-preview-text">NN</span>
+                            </div>
+                            <span class="app-icon-name" id="ios-app-name">Nebula Notes</span>
+                          </div>
+
+                          <div class="device-chip">iPhone Preview</div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="device-wrap">
+                    <div class="android-phone hero-android-phone">
+                      <div class="android-screen-wrap">
+                        <div class="android-wallpaper android-wallpaper-light">
+                          <div class="glow1"></div>
+                          <div class="glow2"></div>
+                          <div class="android-camera"></div>
+
+                          <div class="home-screen-app home-screen-app-android">
+                            <div class="app-icon icon-shape-rounded-square" id="android-preview-icon">
+                              <span id="android-preview-text">NN</span>
+                            </div>
+                            <span class="app-icon-name" id="android-app-name">Nebula Notes</span>
+                          </div>
+
+                          <div class="device-chip">Android Preview</div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="preview-stats">
+                <div>
+                  <span>iOS Pack</span>
+                  <strong>43 files</strong>
+                </div>
+                <div>
+                  <span>Android Pack</span>
+                  <strong>6 sizes</strong>
+                </div>
+              </div>
+
+              <div class="api-status" id="api-status">
+                Backend status: ready to save project
+              </div>
+            </aside>
+          </div>
+        </section>
+
+        <section class="export-section" id="export-kit">
+          <div class="section-heading simple-heading">
+            <h2>Export Kit</h2>
+            <p>Build the package and download the zip file for Android and iOS.</p>
+          </div>
+
+          <div class="export-layout">
+            <div class="panel manifest-panel">
+              <div class="manifest-header">
+                <div>
+                  <h3>Generated size matrix</h3>
+                  <p>Android and iOS required outputs.</p>
+                </div>
+                <button class="button button-primary" id="generate-export-button">Generate Export Plan</button>
+              </div>
+              <div class="manifest-columns">
+                <div>
+                  <h4>Android</h4>
+                  <ul class="size-list">
+                    <li><span>mipmap-mdpi</span><strong>48×48</strong></li>
+                    <li><span>mipmap-hdpi</span><strong>72×72</strong></li>
+                    <li><span>mipmap-xhdpi</span><strong>96×96</strong></li>
+                    <li><span>mipmap-xxhdpi</span><strong>144×144</strong></li>
+                    <li><span>mipmap-xxxhdpi</span><strong>192×192</strong></li>
+                    <li><span>Google Play</span><strong>512×512</strong></li>
+                  </ul>
+                </div>
+                <div>
+                  <h4>iOS</h4>
+                  <ul class="size-list">
+                    <li><span>iPhone</span><strong>11 files</strong></li>
+                    <li><span>iPad</span><strong>13 files</strong></li>
+                    <li><span>watchOS</span><strong>8 files</strong></li>
+                    <li><span>macOS</span><strong>11 files</strong></li>
+                    <li><span>Total Apple Pack</span><strong>43 files</strong></li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+
+            <div class="panel code-panel">
+              <div class="panel-heading">
+                <h3>Download Status</h3>
+                <p>The backend now returns a zip attachment and the browser downloads it automatically.</p>
+              </div>
+              <pre id="export-output">Click "Generate Export Plan" to build the export package and download the zip.</pre>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <script type="module" src="/website/app.js"></script>
+  </body>
+</html>

@@ -1,0 +1,14 @@
+{
+  "name": "iconforge-studio-backend",
+  "version": "1.0.0",
+  "description": "Backend API for the Android and iOS icon generator plus admin analytics dashboard.",
+  "type": "module",
+  "main": "src/server.js",
+  "scripts": {
+    "dev": "node --watch src/server.js",
+    "start": "node src/server.js"
+  },
+  "dependencies": {
+    "express": "^4.21.2"
+  }
+}
