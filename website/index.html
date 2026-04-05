@@ -55,7 +55,7 @@
               <div class="field-group">
                 <label class="field">
                   <span>Background</span>
-                  <input id="bg-color" type="color" value="#2563eb" />
+                  <input id="bg-color" type="color" value="#ffffff" />
                 </label>
                 <label class="field">
                   <span>Foreground</span>
@@ -96,20 +96,31 @@
                 <input id="shadow-range" type="range" min="0" max="30" step="1" value="18" />
               </label>
 
+              <div class="action-stack">
+                <button class="button button-primary" id="save-project-button">Save Project</button>
+                <button class="button button-secondary" id="load-preview-button">Refresh Preview</button>
+              </div>
+            </aside>
+
+            <aside class="panel upload-panel">
+              <div class="panel-heading">
+                <h3>Upload</h3>
+                <p>Swap the default icon and export the current package from here.</p>
+              </div>
+
               <label class="field upload-field">
                 <span>Upload icon asset</span>
                 <input id="asset-upload" type="file" accept=".png,.jpg,.jpeg,.svg" />
-                <small id="upload-help">Optional for now. If not uploaded, the preview uses the text icon.</small>
-                <div class="upload-meta" id="upload-meta">No asset selected</div>
+                <small id="upload-help">The project starts with your default icon. Upload another file to replace it.</small>
+                <div class="upload-meta" id="upload-meta">Selected: app-builder-icon.png</div>
                 <button class="button button-secondary button-compact" id="clear-upload-button" type="button" hidden>
                   Remove Upload
                 </button>
               </label>
 
-              <div class="action-stack">
-                <button class="button button-primary" id="save-project-button">Save Project</button>
-                <button class="button button-secondary" id="load-preview-button">Refresh Preview</button>
-              </div>
+              <button class="button button-primary button-gold" data-export-trigger="primary" type="button">
+                Generate Export Plan
+              </button>
             </aside>
 
             <section class="panel canvas-panel">
@@ -137,10 +148,63 @@
               </div>
             </section>
 
-            <aside class="panel preview-panel">
+            <aside class="preview-rail">
+              <div class="preview-device-row">
+                <div class="panel preview-device-panel">
+                  <div class="device-wrap">
+                    <div class="ios-phone hero-ios-phone">
+                      <div class="ios-vol-up"></div>
+                      <div class="ios-vol-dn"></div>
+                      <div class="ios-power"></div>
+
+                      <div class="ios-screen-wrap">
+                        <div class="ios-wallpaper ios-wallpaper-light">
+                          <div class="glow1"></div>
+                          <div class="glow2"></div>
+                          <div class="dynamic-island"></div>
+
+                          <div class="home-screen-app home-screen-app-ios">
+                            <div class="app-icon icon-shape-squircle" id="ios-preview-icon">
+                              <span id="ios-preview-text">NN</span>
+                            </div>
+                            <span class="app-icon-name" id="ios-app-name">Nebula Notes</span>
+                          </div>
+
+                          <div class="device-chip">iPhone</div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="panel preview-device-panel">
+                  <div class="device-wrap">
+                    <div class="android-phone hero-android-phone">
+                      <div class="android-screen-wrap">
+                        <div class="android-wallpaper android-wallpaper-light">
+                          <div class="glow1"></div>
+                          <div class="glow2"></div>
+                          <div class="android-camera"></div>
+
+                          <div class="home-screen-app home-screen-app-android">
+                            <div class="app-icon icon-shape-rounded-square" id="android-preview-icon">
+                              <span id="android-preview-text">NN</span>
+                            </div>
+                            <span class="app-icon-name" id="android-app-name">Nebula Notes</span>
+                          </div>
+
+                          <div class="device-chip">Android</div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <aside class="panel preview-panel">
               <div class="panel-heading">
-                <h3>Platform Preview</h3>
-                <p>See Android and iOS side by side.</p>
+                <h3>Design Variations</h3>
+                <p>Round, squircle, and legacy app icon previews.</p>
               </div>
               <div class="live-preview-shell">
                 <div class="variant-row">
@@ -163,54 +227,6 @@
                     <span>Legacy Icon</span>
                   </div>
                 </div>
-
-                <div class="preview-stage preview-stage-large">
-                  <div class="device-wrap">
-                    <div class="ios-phone hero-ios-phone">
-                      <div class="ios-vol-up"></div>
-                      <div class="ios-vol-dn"></div>
-                      <div class="ios-power"></div>
-
-                      <div class="ios-screen-wrap">
-                        <div class="ios-wallpaper ios-wallpaper-light">
-                          <div class="glow1"></div>
-                          <div class="glow2"></div>
-                          <div class="dynamic-island"></div>
-
-                          <div class="home-screen-app home-screen-app-ios">
-                            <div class="app-icon icon-shape-squircle" id="ios-preview-icon">
-                              <span id="ios-preview-text">NN</span>
-                            </div>
-                            <span class="app-icon-name" id="ios-app-name">Nebula Notes</span>
-                          </div>
-
-                          <div class="device-chip">iPhone Preview</div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div class="device-wrap">
-                    <div class="android-phone hero-android-phone">
-                      <div class="android-screen-wrap">
-                        <div class="android-wallpaper android-wallpaper-light">
-                          <div class="glow1"></div>
-                          <div class="glow2"></div>
-                          <div class="android-camera"></div>
-
-                          <div class="home-screen-app home-screen-app-android">
-                            <div class="app-icon icon-shape-rounded-square" id="android-preview-icon">
-                              <span id="android-preview-text">NN</span>
-                            </div>
-                            <span class="app-icon-name" id="android-app-name">Nebula Notes</span>
-                          </div>
-
-                          <div class="device-chip">Android Preview</div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
               </div>
 
               <div class="preview-stats">
@@ -227,6 +243,7 @@
               <div class="api-status" id="api-status">
                 Backend status: ready to save project
               </div>
+              </aside>
             </aside>
           </div>
         </section>
@@ -244,7 +261,7 @@
                   <h3>Generated size matrix</h3>
                   <p>Android and iOS required outputs.</p>
                 </div>
-                <button class="button button-primary" id="generate-export-button">Generate Export Plan</button>
+                <button class="button button-primary button-gold" id="generate-export-button" data-export-trigger="secondary">Generate Export Plan</button>
               </div>
               <div class="manifest-columns">
                 <div>

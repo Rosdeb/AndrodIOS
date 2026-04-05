@@ -1,16 +1,18 @@
+const defaultAssetPath = "/website/assets/icons/app-builder-icon.png";
+
 const state = {
   projectId: null,
   projectName: "Nebula Notes",
   iconText: "NN",
-  backgroundColor: "#2563eb",
+  backgroundColor: "#ffffff",
   foregroundColor: "#ffffff",
   shape: "rounded-square",
   zoom: 1.1,
   padding: 18,
   shadow: 18,
-  assetDataUrl: null,
-  assetName: "",
-  assetMimeType: "",
+  assetDataUrl: defaultAssetPath,
+  assetName: "app-builder-icon.png",
+  assetMimeType: "image/png",
   lastExportFileName: "",
   lastExportAt: "",
   isExporting: false
@@ -50,7 +52,7 @@ const elements = {
   exportOutput: document.querySelector("#export-output"),
   saveProjectButton: document.querySelector("#save-project-button"),
   loadPreviewButton: document.querySelector("#load-preview-button"),
-  generateExportButton: document.querySelector("#generate-export-button")
+  exportButtons: [...document.querySelectorAll("[data-export-trigger]")]
 };
 
 function setExportMessage(message) {
@@ -115,6 +117,14 @@ function ensureAssetImage(element) {
   return image;
 }
 
+function getAssetSize(mode) {
+  const baseSize = mode === "editor"
+    ? 100 - Math.min(42, state.padding * 1.35)
+    : 96 - Math.min(24, state.padding * 0.55);
+
+  return Math.max(mode === "editor" ? 68 : 76, baseSize);
+}
+
 function updateIconStyles(element, textElement, defaultShape, mode = "editor") {
   applyShape(element, defaultShape);
   element.style.background = state.backgroundColor;
@@ -122,7 +132,10 @@ function updateIconStyles(element, textElement, defaultShape, mode = "editor") {
   element.style.boxShadow = getShadow();
   element.style.transformOrigin = "center center";
 
-  if (mode === "editor") {
+  const imageElement = ensureAssetImage(element);
+  const hasAsset = Boolean(state.assetDataUrl);
+
+  if (!hasAsset && mode === "editor") {
     element.style.padding = `${state.padding}px`;
     element.style.transform = `scale(${state.zoom})`;
   } else {
@@ -130,11 +143,13 @@ function updateIconStyles(element, textElement, defaultShape, mode = "editor") {
     element.style.transform = "none";
   }
 
-  const imageElement = ensureAssetImage(element);
-  const hasAsset = Boolean(state.assetDataUrl);
-
   imageElement.src = hasAsset ? state.assetDataUrl : "";
   imageElement.hidden = !hasAsset;
+  imageElement.style.width = `${getAssetSize(mode)}%`;
+  imageElement.style.height = `${getAssetSize(mode)}%`;
+  imageElement.style.transform = hasAsset
+    ? `translate(-50%, -50%) scale(${state.zoom})`
+    : "translate(-50%, -50%) scale(1)";
   textElement.hidden = hasAsset;
   textElement.textContent = clampText(state.iconText);
 }
@@ -209,11 +224,12 @@ async function handleAssetUpload(event) {
 }
 
 function clearUploadedAsset() {
-  state.assetDataUrl = null;
-  state.assetName = "";
-  state.assetMimeType = "";
+  state.assetDataUrl = defaultAssetPath;
+  state.assetName = "app-builder-icon.png";
+  state.assetMimeType = "image/png";
+  state.backgroundColor = "#ffffff";
   elements.assetUpload.value = "";
-  elements.apiStatus.textContent = "Uploaded asset removed. Text preview restored.";
+  elements.apiStatus.textContent = "Uploaded asset removed. Default project icon restored.";
   render();
 }
 
@@ -287,7 +303,9 @@ async function generateExportPlan() {
   }
 
   state.isExporting = true;
-  elements.generateExportButton.disabled = true;
+  elements.exportButtons.forEach((button) => {
+    button.disabled = true;
+  });
   setExportMessage("Preparing your export package. The zip download will start automatically.");
   elements.apiStatus.textContent = "Building Android and iOS export zip...";
 
@@ -305,7 +323,9 @@ async function generateExportPlan() {
 
   if (!response.ok) {
     state.isExporting = false;
-    elements.generateExportButton.disabled = false;
+    elements.exportButtons.forEach((button) => {
+      button.disabled = false;
+    });
     throw new Error("Unable to generate export zip");
   }
 
@@ -319,7 +339,9 @@ async function generateExportPlan() {
   state.lastExportFileName = fileName;
   state.lastExportAt = new Date().toLocaleString();
   state.isExporting = false;
-  elements.generateExportButton.disabled = false;
+  elements.exportButtons.forEach((button) => {
+    button.disabled = false;
+  });
   setExportMessage(
     [
       "Export complete",
@@ -374,15 +396,19 @@ function bindEvents() {
     }
   });
 
-  elements.generateExportButton.addEventListener("click", async () => {
-    try {
-      await generateExportPlan();
-    } catch (error) {
-      state.isExporting = false;
-      elements.generateExportButton.disabled = false;
-      setExportMessage(error.message);
-      elements.apiStatus.textContent = error.message;
-    }
+  elements.exportButtons.forEach((button) => {
+    button.addEventListener("click", async () => {
+      try {
+        await generateExportPlan();
+      } catch (error) {
+        state.isExporting = false;
+        elements.exportButtons.forEach((item) => {
+          item.disabled = false;
+        });
+        setExportMessage(error.message);
+        elements.apiStatus.textContent = error.message;
+      }
+    });
   });
 }
 

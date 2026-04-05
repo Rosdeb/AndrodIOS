@@ -51,7 +51,7 @@ function createProject(payload) {
       assetName: payload.icon?.assetName || null,
       assetMimeType: payload.icon?.assetMimeType || null,
       foregroundColor: payload.icon?.foregroundColor || "#ffffff",
-      backgroundColor: payload.icon?.backgroundColor || "#111827",
+      backgroundColor: payload.icon?.backgroundColor || "#ffffff",
       gradient: payload.icon?.gradient || null,
       zoom: payload.icon?.zoom ?? 1,
       padding: payload.icon?.padding ?? 16,

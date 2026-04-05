@@ -4,6 +4,7 @@ import { promisify } from "node:util";
 import { mkdtemp, readFile, rm, writeFile, mkdir } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
+import { fileURLToPath } from "node:url";
 
 import { store } from "../data/store.js";
 import { createHttpError } from "../utils/httpError.js";
@@ -11,6 +12,9 @@ import { analyticsService } from "./analyticsService.js";
 import { projectService } from "./projectService.js";
 
 const execFileAsync = promisify(execFile);
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const workspaceRoot = path.resolve(__dirname, "../../..");
 
 const androidSizes = [
   { folder: "mipmap-mdpi", size: "48x48", file: "ic_launcher.png" },
@@ -105,6 +109,31 @@ function parseDataUrl(dataUrl) {
   };
 }
 
+async function loadProjectAsset(project) {
+  const inlineAsset = parseDataUrl(project.icon.assetDataUrl);
+
+  if (inlineAsset) {
+    return inlineAsset;
+  }
+
+  const assetPath = project.icon.assetUrl || project.icon.assetDataUrl;
+
+  if (typeof assetPath !== "string" || !assetPath.startsWith("/website/")) {
+    return null;
+  }
+
+  const resolvedPath = path.join(workspaceRoot, assetPath.replace(/^\//, ""));
+
+  try {
+    return {
+      mimeType: project.icon.assetMimeType || "application/octet-stream",
+      buffer: await readFile(resolvedPath)
+    };
+  } catch {
+    return null;
+  }
+}
+
 function buildContentsJson() {
   return {
     images: iosSizes.map((item) => ({
@@ -124,7 +153,7 @@ function buildContentsJson() {
 
 async function createFileSet(rootDirectory, packageRootName, project, platforms) {
   const exportRoot = path.join(rootDirectory, packageRootName);
-  const sourceAsset = parseDataUrl(project.icon.assetDataUrl);
+  const sourceAsset = await loadProjectAsset(project);
   const sourceExtension =
     project.icon.assetMimeType === "image/svg+xml"
       ? "svg"
