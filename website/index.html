@@ -7,7 +7,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Outfit:wght@400;500;600;700&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
       rel="stylesheet"
     />
     <link rel="stylesheet" href="/website/styles.css" />
@@ -37,9 +37,32 @@
 
           <div class="editor-layout">
             <aside class="panel controls-panel">
-              <div class="panel-heading">
-                <h3>Controls</h3>
-                <p>Simple editor tools for the icon.</p>
+              <div class="dropzone-field">
+                <span class="dropzone-label">Upload & Customize</span>
+                <div class="dropzone-area" id="dropzone-area">
+                  <input id="asset-upload" type="file" accept=".png,.jpg,.jpeg,.svg" />
+                  <div class="dropzone-icon">
+                    <svg viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                      <polyline points="17 8 12 3 7 8"></polyline>
+                      <line x1="12" y1="3" x2="12" y2="15"></line>
+                    </svg>
+                  </div>
+                  <div class="dropzone-text">
+                    <strong>Drop image here or click to upload</strong>
+                    <span>PNG, JPG, SVG up to 10MB</span>
+                  </div>
+                </div>
+                
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-top:2px;">
+                  <div class="upload-meta" id="upload-meta" style="font-size:0.85rem; color:#5e6878;">No asset selected</div>
+                  <button class="button button-secondary button-compact" id="clear-upload-button" type="button" hidden style="padding:4px 8px; font-size:0.8rem; min-height:0;">Remove</button>
+                </div>
+                
+                <div style="display:flex; align-items:center; gap:8px; margin-top:2px;">
+                  <input type="checkbox" id="blend-bg-checkbox" style="width:auto; padding:0; margin:0;">
+                  <label for="blend-bg-checkbox" style="font-size:0.85rem; color:var(--ink);">Blend white background</label>
+                </div>
               </div>
 
               <label class="field">
@@ -59,7 +82,7 @@
                 </label>
                 <label class="field">
                   <span>Foreground</span>
-                  <input id="fg-color" type="color" value="#ffffff" />
+                  <input id="fg-color" type="color" value="#1a2130" />
                 </label>
               </div>
 
@@ -88,49 +111,45 @@
                 <input id="padding-range" type="range" min="6" max="32" step="1" value="18" />
               </label>
 
-              <label class="field range-field">
-                <div class="range-header">
-                  <span>Shadow</span>
-                  <output id="shadow-output">18</output>
-                </div>
-                <input id="shadow-range" type="range" min="0" max="30" step="1" value="18" />
-              </label>
+
 
               <div class="action-stack">
                 <button class="button button-primary" id="save-project-button">Save Project</button>
                 <button class="button button-secondary" id="load-preview-button">Refresh Preview</button>
               </div>
-            </aside>
 
-            <aside class="panel upload-panel">
-              <div class="panel-heading">
-                <h3>Upload</h3>
-                <p>Swap the default icon and export the current package from here.</p>
-              </div>
-
-              <label class="field upload-field">
-                <span>Upload icon asset</span>
-                <input id="asset-upload" type="file" accept=".png,.jpg,.jpeg,.svg" />
-                <small id="upload-help">The project starts with your default icon. Upload another file to replace it.</small>
-                <div class="upload-meta" id="upload-meta">Selected: app-builder-icon.png</div>
-                <button class="button button-secondary button-compact" id="clear-upload-button" type="button" hidden>
-                  Remove Upload
+              <div style="margin-top: 8px;">
+                <button class="button button-primary button-gold" data-export-trigger="primary" type="button" style="width:100%;">
+                  Generate Export Plan
                 </button>
-              </label>
-
-              <button class="button button-primary button-gold" data-export-trigger="primary" type="button">
-                Generate Export Plan
-              </button>
+              </div>
             </aside>
 
-            <section class="panel canvas-panel">
+            <section class="canvas-panel">
               <div class="panel-heading">
                 <h3>Working Canvas</h3>
                 <p>Direct edit area with a safe-zone guide.</p>
               </div>
 
               <div class="canvas-display">
-                <div class="safe-zone"></div>
+                <svg class="canvas-grid-svg" viewBox="0 0 400 400" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <!-- Outer squircle guide -->
+                  <rect x="24" y="24" width="352" height="352" rx="80" stroke="currentColor" stroke-width="1.5"/>
+                  <!-- Inner squircle guide -->
+                  <rect x="64" y="64" width="272" height="272" rx="60" stroke="currentColor" stroke-width="1.5"/>
+                  <!-- Large circle -->
+                  <circle cx="200" cy="200" r="176" stroke="currentColor" stroke-width="1.5"/>
+                  <!-- Medium circle -->
+                  <circle cx="200" cy="200" r="100" stroke="currentColor" stroke-width="1.5"/>
+                  <!-- Axis Lines -->
+                  <line x1="200" y1="0" x2="200" y2="400" stroke="currentColor" stroke-width="1.5"/>
+                  <line x1="0" y1="200" x2="400" y2="200" stroke="currentColor" stroke-width="1.5"/>
+                  <!-- Diagonal Lines -->
+                  <line x1="20" y1="20" x2="380" y2="380" stroke="currentColor" stroke-width="1.5"/>
+                  <line x1="380" y1="20" x2="20" y2="380" stroke="currentColor" stroke-width="1.5"/>
+                </svg>
+
+                <div class="safe-zone" hidden></div>
                 <div class="editor-icon icon-shape-rounded-square" id="editor-icon">
                   <span id="editor-icon-text">NN</span>
                 </div>
@@ -138,7 +157,7 @@
 
               <div class="canvas-footer">
                 <div>
-                  <p class="eyebrow">Preview Mode</p>
+                  <p class="eyebrow" style="text-transform: uppercase;">PREVIEW MODE</p>
                   <strong>Simple studio view</strong>
                 </div>
                 <div class="legend-row">
@@ -149,58 +168,6 @@
             </section>
 
             <aside class="preview-rail">
-              <div class="preview-device-row">
-                <div class="panel preview-device-panel">
-                  <div class="device-wrap">
-                    <div class="ios-phone hero-ios-phone">
-                      <div class="ios-vol-up"></div>
-                      <div class="ios-vol-dn"></div>
-                      <div class="ios-power"></div>
-
-                      <div class="ios-screen-wrap">
-                        <div class="ios-wallpaper ios-wallpaper-light">
-                          <div class="glow1"></div>
-                          <div class="glow2"></div>
-                          <div class="dynamic-island"></div>
-
-                          <div class="home-screen-app home-screen-app-ios">
-                            <div class="app-icon icon-shape-squircle" id="ios-preview-icon">
-                              <span id="ios-preview-text">NN</span>
-                            </div>
-                            <span class="app-icon-name" id="ios-app-name">Nebula Notes</span>
-                          </div>
-
-                          <div class="device-chip">iPhone</div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <div class="panel preview-device-panel">
-                  <div class="device-wrap">
-                    <div class="android-phone hero-android-phone">
-                      <div class="android-screen-wrap">
-                        <div class="android-wallpaper android-wallpaper-light">
-                          <div class="glow1"></div>
-                          <div class="glow2"></div>
-                          <div class="android-camera"></div>
-
-                          <div class="home-screen-app home-screen-app-android">
-                            <div class="app-icon icon-shape-rounded-square" id="android-preview-icon">
-                              <span id="android-preview-text">NN</span>
-                            </div>
-                            <span class="app-icon-name" id="android-app-name">Nebula Notes</span>
-                          </div>
-
-                          <div class="device-chip">Android</div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
               <aside class="panel preview-panel">
               <div class="panel-heading">
                 <h3>Design Variations</h3>
@@ -209,21 +176,15 @@
               <div class="live-preview-shell">
                 <div class="variant-row">
                   <div class="variant-card">
-                    <div class="variant-surface variant-round">
-                      <div class="variant-icon icon-shape-circle" id="variant-round-icon"><span id="variant-round-text">NN</span></div>
-                    </div>
+                    <div class="variant-icon icon-shape-circle" id="variant-round-icon"><span id="variant-round-text">NN</span></div>
                     <span>Round Icon</span>
                   </div>
                   <div class="variant-card">
-                    <div class="variant-surface variant-squircle-surface">
-                      <div class="variant-icon icon-shape-squircle" id="variant-squircle-icon"><span id="variant-squircle-text">NN</span></div>
-                    </div>
+                    <div class="variant-icon icon-shape-squircle" id="variant-squircle-icon"><span id="variant-squircle-text">NN</span></div>
                     <span>Squircle</span>
                   </div>
                   <div class="variant-card">
-                    <div class="variant-surface variant-legacy">
-                      <div class="variant-icon icon-shape-rounded-square" id="variant-legacy-icon"><span id="variant-legacy-text">NN</span></div>
-                    </div>
+                    <div class="variant-icon icon-shape-legacy" id="variant-legacy-icon"><span id="variant-legacy-text">NN</span></div>
                     <span>Legacy Icon</span>
                   </div>
                 </div>

@@ -5,14 +5,14 @@ const state = {
   projectName: "Nebula Notes",
   iconText: "NN",
   backgroundColor: "#ffffff",
-  foregroundColor: "#ffffff",
+  foregroundColor: "#1a2130",
   shape: "rounded-square",
   zoom: 1.1,
   padding: 18,
-  shadow: 18,
-  assetDataUrl: defaultAssetPath,
-  assetName: "app-builder-icon.png",
-  assetMimeType: "image/png",
+  assetDataUrl: null,
+  assetName: "",
+  assetMimeType: "",
+  blendWhiteBackground: false,
   lastExportFileName: "",
   lastExportAt: "",
   isExporting: false
@@ -28,20 +28,12 @@ const elements = {
   zoomOutput: document.querySelector("#zoom-output"),
   padding: document.querySelector("#padding-range"),
   paddingOutput: document.querySelector("#padding-output"),
-  shadow: document.querySelector("#shadow-range"),
-  shadowOutput: document.querySelector("#shadow-output"),
   assetUpload: document.querySelector("#asset-upload"),
-  uploadHelp: document.querySelector("#upload-help"),
   uploadMeta: document.querySelector("#upload-meta"),
+  blendBgCheckbox: document.querySelector("#blend-bg-checkbox"),
   clearUploadButton: document.querySelector("#clear-upload-button"),
   editorIcon: document.querySelector("#editor-icon"),
   editorIconText: document.querySelector("#editor-icon-text"),
-  androidIcon: document.querySelector("#android-preview-icon"),
-  androidText: document.querySelector("#android-preview-text"),
-  iosIcon: document.querySelector("#ios-preview-icon"),
-  iosText: document.querySelector("#ios-preview-text"),
-  androidAppName: document.querySelector("#android-app-name"),
-  iosAppName: document.querySelector("#ios-app-name"),
   variantRoundIcon: document.querySelector("#variant-round-icon"),
   variantRoundText: document.querySelector("#variant-round-text"),
   variantSquircleIcon: document.querySelector("#variant-squircle-icon"),
@@ -93,14 +85,9 @@ function clampText(value) {
   return value.trim().slice(0, 2).toUpperCase() || "IF";
 }
 
-function getShadow() {
-  return `0 ${Math.max(8, state.shadow)}px ${state.shadow * 2}px rgba(37, 99, 235, 0.22)`;
-}
-
-function applyShape(element, defaultShape) {
+function applyShape(element, explicitShape) {
   element.classList.remove("icon-shape-rounded-square", "icon-shape-squircle", "icon-shape-circle");
-  const shapeName = state.shape || defaultShape;
-  element.classList.add(`icon-shape-${shapeName}`);
+  element.classList.add(`icon-shape-${explicitShape}`);
 }
 
 function ensureAssetImage(element) {
@@ -129,7 +116,6 @@ function updateIconStyles(element, textElement, defaultShape, mode = "editor") {
   applyShape(element, defaultShape);
   element.style.background = state.backgroundColor;
   element.style.color = state.foregroundColor;
-  element.style.boxShadow = getShadow();
   element.style.transformOrigin = "center center";
 
   const imageElement = ensureAssetImage(element);
@@ -150,6 +136,7 @@ function updateIconStyles(element, textElement, defaultShape, mode = "editor") {
   imageElement.style.transform = hasAsset
     ? `translate(-50%, -50%) scale(${state.zoom})`
     : "translate(-50%, -50%) scale(1)";
+  imageElement.style.mixBlendMode = (state.blendWhiteBackground && hasAsset) ? "multiply" : "normal";
   textElement.hidden = hasAsset;
   textElement.textContent = clampText(state.iconText);
 }
@@ -157,25 +144,18 @@ function updateIconStyles(element, textElement, defaultShape, mode = "editor") {
 function render() {
   elements.zoomOutput.value = `${state.zoom.toFixed(2)}x`;
   elements.paddingOutput.value = `${state.padding}px`;
-  elements.shadowOutput.value = String(state.shadow);
   elements.projectName.value = state.projectName;
   elements.iconText.value = state.iconText;
   elements.bgColor.value = state.backgroundColor;
   elements.fgColor.value = state.foregroundColor;
   elements.shape.value = state.shape;
+  elements.blendBgCheckbox.checked = state.blendWhiteBackground;
   elements.uploadMeta.textContent = state.assetName ? `Selected: ${state.assetName}` : "No asset selected";
-  elements.uploadHelp.textContent = state.assetName
-    ? "Uploaded asset is active in the editor preview and will be saved with this project."
-    : "Optional for now. If not uploaded, the preview uses the text icon.";
   elements.clearUploadButton.hidden = !state.assetDataUrl;
-  elements.androidAppName.textContent = state.projectName;
-  elements.iosAppName.textContent = state.projectName;
-  updateIconStyles(elements.editorIcon, elements.editorIconText, "rounded-square", "editor");
-  updateIconStyles(elements.androidIcon, elements.androidText, "rounded-square", "preview");
-  updateIconStyles(elements.iosIcon, elements.iosText, "squircle", "preview");
+  updateIconStyles(elements.editorIcon, elements.editorIconText, state.shape || "rounded-square", "editor");
   updateIconStyles(elements.variantRoundIcon, elements.variantRoundText, "circle", "preview");
   updateIconStyles(elements.variantSquircleIcon, elements.variantSquircleText, "squircle", "preview");
-  updateIconStyles(elements.variantLegacyIcon, elements.variantLegacyText, "rounded-square", "preview");
+  updateIconStyles(elements.variantLegacyIcon, elements.variantLegacyText, "legacy", "preview");
 }
 
 function syncStateFromInputs() {
@@ -186,7 +166,7 @@ function syncStateFromInputs() {
   state.shape = elements.shape.value;
   state.zoom = Number(elements.zoom.value);
   state.padding = Number(elements.padding.value);
-  state.shadow = Number(elements.shadow.value);
+  state.blendWhiteBackground = elements.blendBgCheckbox.checked;
   render();
 }
 
@@ -224,12 +204,11 @@ async function handleAssetUpload(event) {
 }
 
 function clearUploadedAsset() {
-  state.assetDataUrl = defaultAssetPath;
-  state.assetName = "app-builder-icon.png";
-  state.assetMimeType = "image/png";
-  state.backgroundColor = "#ffffff";
+  state.assetDataUrl = null;
+  state.assetName = "";
+  state.assetMimeType = "";
   elements.assetUpload.value = "";
-  elements.apiStatus.textContent = "Uploaded asset removed. Default project icon restored.";
+  elements.apiStatus.textContent = "Uploaded asset removed.";
   render();
 }
 
@@ -249,7 +228,6 @@ async function saveProject() {
       gradient: null,
       zoom: state.zoom,
       padding: state.padding,
-      shadow: state.shadow,
       shape: state.shape
     }
   };
@@ -356,6 +334,18 @@ async function generateExportPlan() {
 }
 
 function bindEvents() {
+  let iconTextPristine = true;
+
+  elements.iconText.addEventListener("input", () => {
+    iconTextPristine = false;
+  });
+
+  elements.projectName.addEventListener("input", (e) => {
+    if (iconTextPristine) {
+      elements.iconText.value = clampText(e.target.value);
+    }
+  });
+
   [
     elements.projectName,
     elements.iconText,
@@ -364,7 +354,7 @@ function bindEvents() {
     elements.shape,
     elements.zoom,
     elements.padding,
-    elements.shadow
+    elements.blendBgCheckbox
   ].forEach((input) => {
     input.addEventListener("input", syncStateFromInputs);
   });
@@ -377,6 +367,27 @@ function bindEvents() {
       elements.apiStatus.textContent = error.message;
     }
   });
+
+  const dropzoneArea = document.querySelector("#dropzone-area");
+  if (dropzoneArea) {
+    dropzoneArea.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      dropzoneArea.classList.add('drag-active');
+    });
+    dropzoneArea.addEventListener('dragleave', (e) => {
+      e.preventDefault();
+      dropzoneArea.classList.remove('drag-active');
+    });
+    dropzoneArea.addEventListener('drop', (e) => {
+      e.preventDefault();
+      dropzoneArea.classList.remove('drag-active');
+      const files = e.dataTransfer.files;
+      if (files.length) {
+        elements.assetUpload.files = files;
+        elements.assetUpload.dispatchEvent(new Event('change'));
+      }
+    });
+  }
 
   elements.clearUploadButton.addEventListener("click", clearUploadedAsset);
 
