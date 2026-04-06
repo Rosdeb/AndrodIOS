@@ -4,6 +4,18 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>IconForge Studio</title>
+    <meta name="description" content="IconForge Studio — Professional app icon workshop for iOS and Android. Generate every required icon size instantly." />
+    <meta name="theme-color" content="#7b9ef0" />
+
+    <!-- Favicon & Site Icons -->
+    <link rel="icon" href="/website/assets/icons/favicon.ico" sizes="any" />
+    <link rel="icon" href="/website/assets/icons/favicon-32x32.png" type="image/png" sizes="32x32" />
+    <link rel="icon" href="/website/assets/icons/favicon-16x16.png" type="image/png" sizes="16x16" />
+    <link rel="apple-touch-icon" href="/website/assets/icons/apple-touch-icon.png" />
+    <link rel="manifest" href="/website/site.webmanifest" />
+    <!-- Force cache-bust for updated favicon -->
+    <link rel="shortcut icon" href="/website/assets/icons/favicon.ico?v=2" />
+
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -16,10 +28,16 @@
     <div class="site-shell">
       <header class="workspace-header">
         <div class="brand-lockup">
-          <span class="brand-mark">IF</span>
+          <img
+            class="brand-mark brand-mark-img"
+            src="/website/assets/icons/Gemini_Generated_Image_wc0y3fwc0y3fwc0y-removebg-preview.png"
+            alt="IconForge Studio logo"
+            width="100"
+            height="100"
+          />
           <div>
-            <p class="eyebrow">Live App Icon Workshop</p>
-            <h1>IconForge Studio</h1>
+            <!--<p class="eyebrow">Live App Icon Workshop</p>-->
+            <h1>ICONFORGE STUDIO</h1>
           </div>
         </div>
         <div class="topbar-links">
@@ -30,10 +48,10 @@
 
       <main>
         <section class="editor-section" id="editor">
-          <div class="section-heading simple-heading">
+          <!-- <div class="section-heading simple-heading">
             <h2>Live app icon workshop</h2>
             <p>A custom workspace for color exploration, safe-zone styling, and platform previews.</p>
-          </div>
+          </div> -->
 
           <div class="editor-layout">
             <aside class="panel controls-panel">
@@ -75,15 +93,27 @@
                 <input id="icon-text" type="text" value="NN" maxlength="2" />
               </label>
 
-              <div class="field-group">
-                <label class="field">
-                  <span>Background</span>
-                  <input id="bg-color" type="color" value="#ffffff" />
-                </label>
-                <label class="field">
-                  <span>Foreground</span>
-                  <input id="fg-color" type="color" value="#1a2130" />
-                </label>
+              <div class="color-field-group">
+                <div class="color-field">
+                  <span class="color-field-label">Background Color:</span>
+                  <div class="color-chip-row">
+                    <div class="color-chip-dark" id="bg-chip" style="background:#ffffff; border:1px solid #e0e4ea;">
+                      <span class="color-hex-value" id="bg-hex" style="color:#1a2130;">#FFFFFF</span>
+                      <svg class="color-dropper-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16" style="color:#555;"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                      <input id="bg-color" type="color" value="#ffffff" class="color-chip-input" />
+                    </div>
+                  </div>
+                </div>
+                <div class="color-field">
+                  <span class="color-field-label">Foreground Color:</span>
+                  <div class="color-chip-row">
+                    <div class="color-chip-dark" id="fg-chip" style="background:#1a2130;">
+                      <span class="color-hex-value" id="fg-hex" style="color:#ffffff;">#1A2130</span>
+                      <svg class="color-dropper-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16" style="color:#aaa;"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                      <input id="fg-color" type="color" value="#1a2130" class="color-chip-input" />
+                    </div>
+                  </div>
+                </div>
               </div>
 
               <label class="field">
@@ -95,20 +125,35 @@
                 </select>
               </label>
 
-              <label class="field range-field">
-                <div class="range-header">
+              <div class="slider-field">
+                <div class="slider-top-row">
+                  <span class="slider-label">Size:</span>
+                  <span class="slider-percent" id="zoom-output">0% zoom</span>
+                </div>
+                <input id="zoom-range" type="range" min="0.8" max="1.4" step="0.05" value="1.1" class="styled-range" />
+                <div class="slider-ticks">
                   <span>Zoom</span>
-                  <output id="zoom-output">1.1x</output>
-                </div>
-                <input id="zoom-range" type="range" min="0.8" max="1.4" step="0.05" value="1.1" />
-              </label>
-
-              <label class="field range-field">
-                <div class="range-header">
+                  <span>Normal</span>
                   <span>Padding</span>
-                  <output id="padding-output">18px</output>
                 </div>
-                <input id="padding-range" type="range" min="6" max="32" step="1" value="18" />
+              </div>
+
+              <div class="slider-field">
+                <div class="slider-top-row">
+                  <span class="slider-label">Padding:</span>
+                  <span class="slider-percent" id="padding-output">18px</span>
+                </div>
+                <input id="padding-range" type="range" min="6" max="32" step="1" value="18" class="styled-range" />
+                <div class="slider-ticks">
+                  <span>Min</span>
+                  <span>Normal</span>
+                  <span>Max</span>
+                </div>
+              </div>
+
+              <label class="field">
+                <span>Android File Name:</span>
+                <input id="android-filename" type="text" value="" placeholder="ic_launcher" class="clean-input" />
               </label>
 
 

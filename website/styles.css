@@ -96,6 +96,17 @@ p {
   box-shadow: 0 12px 24px rgba(0, 0, 0, 0.22);
 }
 
+/* Image-based brand mark (overrides text version) */
+.brand-mark-img {
+  background: transparent;
+  box-shadow: none;
+  border-radius: 0;
+  width: 100px;
+  height: 100px;
+  object-fit: contain;
+  image-rendering: -webkit-optimize-contrast;
+}
+
 .eyebrow {
   margin-bottom: 4px;
   font-size: 0.76rem;
@@ -236,14 +247,169 @@ p {
   padding: 10px;
 }
 
+/* Hide native color input — triggered via chip */
 .field input[type="color"] {
   min-height: 48px;
   padding: 4px;
   background: transparent;
 }
 
-input[type="range"] {
-  accent-color: var(--accent);
+/* ── Styled Range Slider ── */
+input[type="range"],
+.styled-range {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 6px;
+  border-radius: 999px;
+  background: #e0e4ea;
+  outline: none;
+  cursor: pointer;
+  accent-color: #3b82f6;
+}
+
+.styled-range::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #3b82f6;
+  border: 3px solid #fff;
+  box-shadow: 0 2px 8px rgba(59,130,246,0.35);
+  cursor: grab;
+  transition: box-shadow 0.2s;
+}
+
+.styled-range::-webkit-slider-thumb:active {
+  cursor: grabbing;
+  box-shadow: 0 4px 16px rgba(59,130,246,0.55);
+}
+
+/* ── Slider Field ── */
+.slider-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.slider-top-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.slider-label {
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.slider-percent {
+  font-size: 0.82rem;
+  font-weight: 500;
+  color: var(--muted);
+  background: #f0f3f7;
+  padding: 2px 8px;
+  border-radius: 999px;
+}
+
+.slider-ticks {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.75rem;
+  color: #9aa8b8;
+  font-weight: 500;
+  margin-top: 2px;
+}
+
+/* ── Dark Color Chip ── */
+.color-field-group {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.color-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.color-field-label {
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.color-chip-row {
+  display: flex;
+}
+
+.color-chip-dark {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  width: 100%;
+  padding: 13px 16px;
+  border-radius: 12px;
+  background: #2a2a2a;
+  cursor: pointer;
+  overflow: hidden;
+  transition: background 0.2s;
+}
+
+.color-chip-dark:hover {
+  background: #333;
+}
+
+.color-hex-value {
+  font-size: 0.95rem;
+  font-weight: 600;
+  font-family: 'SF Mono', 'Fira Code', monospace;
+  color: #ffffff;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.color-dropper-icon {
+  color: #aaa;
+  flex-shrink: 0;
+}
+
+.color-chip-input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
+  border: none;
+  padding: 0;
+}
+
+/* ── Clean Input (Android File Name) ── */
+.clean-input {
+  width: 100%;
+  padding: 13px 16px;
+  border-radius: 12px;
+  border: 1.5px solid #d0d7e2;
+  background: #fff;
+  color: var(--ink);
+  font-size: 0.95rem;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  outline: none;
+}
+
+.clean-input::placeholder {
+  color: #aab0bc;
+}
+
+.clean-input:focus {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59,130,246,0.15);
 }
 
 .upload-meta {

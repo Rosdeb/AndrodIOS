@@ -141,9 +141,29 @@ function updateIconStyles(element, textElement, defaultShape, mode = "editor") {
   textElement.textContent = clampText(state.iconText);
 }
 
+function updateColorChip(chipId, hexId, colorValue) {
+  const chip = document.querySelector(`#${chipId}`);
+  const hex = document.querySelector(`#${hexId}`);
+  if (chip) chip.style.background = colorValue;
+  if (hex) hex.textContent = colorValue.toUpperCase();
+  // Keep text readable on light vs dark colors
+  const brightness = parseInt(colorValue.slice(1,3),16)*0.299 +
+                     parseInt(colorValue.slice(3,5),16)*0.587 +
+                     parseInt(colorValue.slice(5,7),16)*0.114;
+  const isLight = brightness > 160;
+  if (hex) hex.style.color = isLight ? '#1a2130' : '#ffffff';
+  const dropper = chip && chip.querySelector('.color-dropper-icon');
+  if (dropper) dropper.style.color = isLight ? '#555' : '#aaa';
+  // Add border outline for light chips so they're visible on white panel
+  if (chip) chip.style.border = isLight ? '1px solid #e0e4ea' : '1px solid transparent';
+}
+
 function render() {
-  elements.zoomOutput.value = `${state.zoom.toFixed(2)}x`;
-  elements.paddingOutput.value = `${state.padding}px`;
+  const zoomPct = Math.round((state.zoom - 1) * 100);
+  const zoomEl = document.querySelector("#zoom-output");
+  const paddingEl = document.querySelector("#padding-output");
+  if (zoomEl) zoomEl.textContent = `${zoomPct >= 0 ? '+' : ''}${zoomPct}% zoom`;
+  if (paddingEl) paddingEl.textContent = `${state.padding}px`;
   elements.projectName.value = state.projectName;
   elements.iconText.value = state.iconText;
   elements.bgColor.value = state.backgroundColor;
@@ -152,6 +172,8 @@ function render() {
   elements.blendBgCheckbox.checked = state.blendWhiteBackground;
   elements.uploadMeta.textContent = state.assetName ? `Selected: ${state.assetName}` : "No asset selected";
   elements.clearUploadButton.hidden = !state.assetDataUrl;
+  updateColorChip('bg-chip', 'bg-hex', state.backgroundColor);
+  updateColorChip('fg-chip', 'fg-hex', state.foregroundColor);
   updateIconStyles(elements.editorIcon, elements.editorIconText, state.shape || "rounded-square", "editor");
   updateIconStyles(elements.variantRoundIcon, elements.variantRoundText, "circle", "preview");
   updateIconStyles(elements.variantSquircleIcon, elements.variantSquircleText, "squircle", "preview");
