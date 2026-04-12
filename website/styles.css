@@ -84,27 +84,24 @@ p {
 }
 
 .brand-mark {
-  width: 46px;
-  height: 46px;
-  display: grid;
-  place-items: center;
+  width: 80px;
+  height: 80px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   border-radius: 10px;
-  color: #132544;
-  background: linear-gradient(180deg, var(--accent-strong) 0%, #b98d4e 100%);
-  font-weight: 800;
-  letter-spacing: 0.06em;
-  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.22);
+  color: #1f3966;
+  background: #ffffff;
+  font-weight: bold;
 }
 
 /* Image-based brand mark (overrides text version) */
 .brand-mark-img {
-  background: transparent;
-  box-shadow: none;
-  border-radius: 0;
-  width: 100px;
-  height: 100px;
-  object-fit: contain;
-  image-rendering: -webkit-optimize-contrast;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  border: 1px solid #bcbcbc;
+  object-fit: cover;
 }
 
 .eyebrow {
@@ -116,7 +113,7 @@ p {
 }
 
 .brand-lockup h1 {
-  color: var(--accent);
+  color: #1060af;
   font-size: clamp(2rem, 3vw, 2.5rem);
 }
 
@@ -412,9 +409,26 @@ input[type="range"],
   box-shadow: 0 0 0 3px rgba(59,130,246,0.15);
 }
 
+.upload-meta-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: 2px;
+}
+
 .upload-meta {
+  flex: 1;
+  min-width: 0;
   font-size: 0.92rem;
   font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+#clear-upload-button {
+  flex-shrink: 0;
 }
 
 .field-group {
@@ -682,7 +696,7 @@ input[type="range"],
   flex-direction: column;
   align-items: center;
   gap: 16px;
-  color: #4a5568;
+  color: #8e8f92;
   font-weight: 600;
   font-size: 0.92rem;
 }
@@ -690,7 +704,7 @@ input[type="range"],
 .variant-icon {
   width: 86px;
   height: 86px;
-  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.06);
+  box-shadow: 0 14px 30px rgba(0, 0, 0, 0.24);
 }
 
 .variant-icon span {

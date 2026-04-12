@@ -50,11 +50,13 @@ function createProject(payload) {
       assetDataUrl: payload.icon?.assetDataUrl || payload.icon?.assetUrl || null,
       assetName: payload.icon?.assetName || null,
       assetMimeType: payload.icon?.assetMimeType || null,
+      text: payload.icon?.text || "IF",
       foregroundColor: payload.icon?.foregroundColor || "#ffffff",
       backgroundColor: payload.icon?.backgroundColor || "#ffffff",
       gradient: payload.icon?.gradient || null,
       zoom: payload.icon?.zoom ?? 1,
       padding: payload.icon?.padding ?? 16,
+      blendWhiteBackground: payload.icon?.blendWhiteBackground ?? false,
       positionX: payload.icon?.positionX ?? 0,
       positionY: payload.icon?.positionY ?? 0,
       shadow: payload.icon?.shadow ?? 12,
@@ -102,13 +104,15 @@ function buildPreview(projectId) {
         frame: "Pixel Home Screen",
         cornerStyle: "adaptive-circle",
         background: project.icon.backgroundColor,
-        zoom: project.icon.zoom
+        zoom: project.icon.zoom,
+        text: project.icon.text
       },
       ios: {
         frame: "iPhone Home Screen",
         cornerStyle: "superellipse",
         background: project.icon.backgroundColor,
-        zoom: project.icon.zoom
+        zoom: project.icon.zoom,
+        text: project.icon.text
       }
     }
   };

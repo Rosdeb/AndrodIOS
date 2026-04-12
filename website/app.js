@@ -171,6 +171,7 @@ function render() {
   elements.shape.value = state.shape;
   elements.blendBgCheckbox.checked = state.blendWhiteBackground;
   elements.uploadMeta.textContent = state.assetName ? `Selected: ${state.assetName}` : "No asset selected";
+  elements.uploadMeta.title = state.assetName ? `Selected: ${state.assetName}` : "No asset selected";
   elements.clearUploadButton.hidden = !state.assetDataUrl;
   updateColorChip('bg-chip', 'bg-hex', state.backgroundColor);
   updateColorChip('fg-chip', 'fg-hex', state.foregroundColor);
@@ -245,11 +246,13 @@ async function saveProject() {
       assetDataUrl: state.assetDataUrl,
       assetName: state.assetName,
       assetMimeType: state.assetMimeType,
+      text: state.iconText,
       backgroundColor: state.backgroundColor,
       foregroundColor: state.foregroundColor,
       gradient: null,
       zoom: state.zoom,
       padding: state.padding,
+      blendWhiteBackground: state.blendWhiteBackground,
       shape: state.shape
     }
   };
@@ -276,6 +279,8 @@ async function saveProject() {
   state.assetDataUrl = data.project.icon.assetDataUrl || null;
   state.assetName = data.project.icon.assetName || "";
   state.assetMimeType = data.project.icon.assetMimeType || "";
+  state.iconText = clampText(data.project.icon.text || state.iconText);
+  state.blendWhiteBackground = Boolean(data.project.icon.blendWhiteBackground);
   elements.apiStatus.textContent = `Project saved: ${data.project.name} (${data.project.id.slice(0, 8)})`;
   render();
 }

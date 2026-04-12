@@ -5,6 +5,7 @@ import { mkdtemp, readFile, rm, writeFile, mkdir } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import sharp from "sharp";
 
 import { store } from "../data/store.js";
 import { createHttpError } from "../utils/httpError.js";
@@ -71,10 +72,8 @@ const iosSizes = [
   { role: "mac-marketing", idiom: "mac-marketing", size: "1024x1024", scale: "1x", pixelSize: "1024x1024", file: "Icon-macOS-App-Store-1024x1024@1x.png" }
 ];
 
-const fallbackPngBuffer = Buffer.from(
-  "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVQIHWP4////fwAJ+wP9KobjigAAAABJRU5ErkJggg==",
-  "base64"
-);
+const masterIconSize = 1024;
+const editorReferenceSize = 280;
 
 function sanitizePackageName(name) {
   const normalized = String(name || "app-icons")
@@ -107,6 +106,170 @@ function parseDataUrl(dataUrl) {
       ? Buffer.from(data, "base64")
       : Buffer.from(decodeURIComponent(data), "utf8")
   };
+}
+
+function clamp(value, min, max) {
+  return Math.min(Math.max(value, min), max);
+}
+
+function escapeXml(value) {
+  return String(value)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&apos;");
+}
+
+function clampText(value) {
+  return String(value || "")
+    .trim()
+    .slice(0, 2)
+    .toUpperCase() || "IF";
+}
+
+function getOutputPixelSize(sizeLabel) {
+  return Math.round(Number(String(sizeLabel).split("x")[0]));
+}
+
+function getArtworkScale(project) {
+  const padding = Number(project.icon.padding ?? 18);
+  const zoom = Number(project.icon.zoom ?? 1);
+  const basePercent = 96 - Math.min(24, padding * 0.55);
+
+  return clamp((Math.max(76, basePercent) / 100) * zoom, 0.28, 1.6);
+}
+
+function getArtworkOffset(project, size) {
+  const x = Number(project.icon.positionX ?? 0);
+  const y = Number(project.icon.positionY ?? 0);
+  const ratio = size / editorReferenceSize;
+
+  return {
+    x: Math.round(x * ratio),
+    y: Math.round(y * ratio)
+  };
+}
+
+function buildTextOverlaySvg(project, size) {
+  const text = clampText(project.icon.text || project.name);
+  const fontSize = text.length === 1 ? Math.round(size * 0.5) : Math.round(size * 0.34);
+
+  return Buffer.from(
+    `
+      <svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">
+        <text
+          x="50%"
+          y="52%"
+          text-anchor="middle"
+          dominant-baseline="middle"
+          font-family="Inter, Arial, sans-serif"
+          font-size="${fontSize}"
+          font-weight="700"
+          fill="${escapeXml(project.icon.foregroundColor || "#1a2130")}">${escapeXml(text)}</text>
+      </svg>
+    `.trim()
+  );
+}
+
+async function buildArtworkLayer(project, sourceAsset, size) {
+  if (!sourceAsset?.buffer) {
+    return buildTextOverlaySvg(project, size);
+  }
+
+  const artworkScale = getArtworkScale(project);
+  const scaledSize = Math.max(1, Math.round(size * artworkScale));
+  const { x, y } = getArtworkOffset(project, size);
+  const transparent = { r: 0, g: 0, b: 0, alpha: 0 };
+  const containedBuffer = await sharp(sourceAsset.buffer)
+    .resize({
+      width: size,
+      height: size,
+      fit: "contain",
+      withoutEnlargement: false,
+      background: transparent
+    })
+    .png()
+    .toBuffer();
+  const scaledBuffer = await sharp(containedBuffer)
+    .resize(scaledSize, scaledSize, {
+      fit: "fill"
+    })
+    .png()
+    .toBuffer();
+
+  if (scaledSize >= size) {
+    const maxInset = scaledSize - size;
+    const left = clamp(Math.round((scaledSize - size) / 2 - x), 0, maxInset);
+    const top = clamp(Math.round((scaledSize - size) / 2 - y), 0, maxInset);
+
+    return sharp(scaledBuffer)
+      .extract({
+        left,
+        top,
+        width: size,
+        height: size
+      })
+      .png()
+      .toBuffer();
+  }
+
+  const left = clamp(Math.round((size - scaledSize) / 2 + x), 0, size - scaledSize);
+  const top = clamp(Math.round((size - scaledSize) / 2 + y), 0, size - scaledSize);
+
+  return sharp({
+    create: {
+      width: size,
+      height: size,
+      channels: 4,
+      background: transparent
+    }
+  })
+    .composite([
+      {
+        input: scaledBuffer,
+        left,
+        top,
+        blend: "over"
+      }
+    ])
+    .png()
+    .toBuffer();
+}
+
+async function renderMasterIcon(project, sourceAsset) {
+  const backgroundColor = project.icon.backgroundColor || "#ffffff";
+  const canvas = sharp({
+    create: {
+      width: masterIconSize,
+      height: masterIconSize,
+      channels: 4,
+      background: backgroundColor
+    }
+  });
+  const artworkLayer = await buildArtworkLayer(project, sourceAsset, masterIconSize);
+  const artworkBlend = sourceAsset?.buffer && project.icon.blendWhiteBackground ? "multiply" : "over";
+
+  return canvas
+    .composite([
+      {
+        input: artworkLayer,
+        blend: artworkBlend
+      }
+    ])
+    .flatten({ background: backgroundColor })
+    .png()
+    .toBuffer();
+}
+
+async function renderOutputIcon(masterBuffer, pixelSize) {
+  return sharp(masterBuffer)
+    .resize(pixelSize, pixelSize, {
+      fit: "fill"
+    })
+    .removeAlpha()
+    .png()
+    .toBuffer();
 }
 
 async function loadProjectAsset(project) {
@@ -160,13 +323,13 @@ async function createFileSet(rootDirectory, packageRootName, project, platforms)
       : project.icon.assetMimeType === "image/jpeg"
         ? "jpg"
         : "png";
-  const binaryAsset = sourceAsset?.mimeType === "image/png" ? sourceAsset.buffer : fallbackPngBuffer;
+  const renderedMasterIcon = await renderMasterIcon(project, sourceAsset);
   const readmeLines = [
     `Project: ${project.name}`,
     `Platforms: ${platforms.join(", ")}`,
     "",
-    "This export currently packages the requested Android and iOS folder structure,",
-    "the project manifest, and the uploaded source asset when one is available."
+    "This export packages rendered Android and iOS icon PNGs based on your saved",
+    "editor settings, plus the project manifest and original uploaded source asset."
   ];
 
   await mkdir(exportRoot, { recursive: true });
@@ -179,11 +342,13 @@ async function createFileSet(rootDirectory, packageRootName, project, platforms)
         generatedAt: new Date().toISOString(),
         platforms,
         icon: {
+          text: project.icon.text,
           shape: project.icon.shape,
           backgroundColor: project.icon.backgroundColor,
           foregroundColor: project.icon.foregroundColor,
           zoom: project.icon.zoom,
           padding: project.icon.padding,
+          blendWhiteBackground: project.icon.blendWhiteBackground,
           shadow: project.icon.shadow
         },
         outputs: {
@@ -210,7 +375,7 @@ async function createFileSet(rootDirectory, packageRootName, project, platforms)
     for (const item of androidSizes) {
       const destination = path.join(exportRoot, "android", item.folder, item.file);
       await mkdir(path.dirname(destination), { recursive: true });
-      await writeFile(destination, binaryAsset);
+      await writeFile(destination, await renderOutputIcon(renderedMasterIcon, getOutputPixelSize(item.size)));
     }
   }
 
@@ -219,7 +384,10 @@ async function createFileSet(rootDirectory, packageRootName, project, platforms)
     await mkdir(appIconSetDirectory, { recursive: true });
 
     for (const item of iosSizes) {
-      await writeFile(path.join(appIconSetDirectory, item.file), binaryAsset);
+      await writeFile(
+        path.join(appIconSetDirectory, item.file),
+        await renderOutputIcon(renderedMasterIcon, getOutputPixelSize(item.pixelSize))
+      );
     }
 
     await writeFile(
