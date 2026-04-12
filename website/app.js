@@ -38,6 +38,21 @@ const elements = {
   clearUploadButton: document.querySelector("#clear-upload-button"),
   editorIcon: document.querySelector("#editor-icon"),
   editorIconText: document.querySelector("#editor-icon-text"),
+  showcaseStoreIcon: document.querySelector("#showcase-store-icon"),
+  showcaseStoreText: document.querySelector("#showcase-store-text"),
+  showcasePhoneIcon: document.querySelector("#showcase-phone-icon"),
+  showcasePhoneText: document.querySelector("#showcase-phone-text"),
+  showcasePhoneName: document.querySelector("#showcase-phone-name"),
+  exampleFintechIcon: document.querySelector("#example-fintech-icon"),
+  exampleFintechText: document.querySelector("#example-fintech-text"),
+  exampleCommerceIcon: document.querySelector("#example-commerce-icon"),
+  exampleCommerceText: document.querySelector("#example-commerce-text"),
+  exampleMediaIcon: document.querySelector("#example-media-icon"),
+  exampleMediaText: document.querySelector("#example-media-text"),
+  iosPreviewScreen: document.querySelector("#ios-preview-screen"),
+  iosPreviewIcon: document.querySelector("#ios-preview-icon"),
+  iosPreviewText: document.querySelector("#ios-preview-text"),
+  iosPreviewLabel: document.querySelector("#ios-preview-label"),
   variantRoundIcon: document.querySelector("#variant-round-icon"),
   variantRoundText: document.querySelector("#variant-round-text"),
   variantSquircleIcon: document.querySelector("#variant-squircle-icon"),
@@ -53,6 +68,38 @@ const elements = {
 
 function setExportMessage(message) {
   elements.exportOutput.textContent = message;
+}
+
+function describeShape(shape) {
+  if (shape === "circle") {
+    return "Circle";
+  }
+
+  if (shape === "squircle") {
+    return "Squircle";
+  }
+
+  return "Rounded Square";
+}
+
+function buildExportSummary(fileName) {
+  return [
+    "Export package generated",
+    `Project: ${resolveProjectName(state.projectName)}`,
+    `File: ${fileName}`,
+    "Platforms: Android + iOS",
+    "Android outputs: 6 files",
+    "iOS outputs: 22 icons + Contents.json",
+    `Icon label: ${getCurrentIconText() || "Image asset"}`,
+    `Shape: ${describeShape(state.shape)}`,
+    `Background: ${state.backgroundColor.toUpperCase()}`,
+    `Foreground: ${state.foregroundColor.toUpperCase()}`,
+    `Zoom: ${Math.round(state.zoom * 100)}%`,
+    `Padding: ${state.padding}px`,
+    `Source asset: ${state.assetName || "Text-only icon"}`,
+    `Saved project: ${state.projectId}`,
+    `Downloaded: ${state.lastExportAt}`
+  ].join("\n");
 }
 
 function extractFilename(contentDisposition) {
@@ -100,11 +147,57 @@ function resolveProjectName(value) {
   return value.trim() || "Untitled App";
 }
 
+function clampNumber(value, min, max) {
+  return Math.min(Math.max(value, min), max);
+}
+
+function parseHexColor(color) {
+  const hex = String(color || "").trim().replace("#", "");
+
+  if (!/^[0-9a-fA-F]{6}$/.test(hex)) {
+    return { r: 255, g: 255, b: 255 };
+  }
+
+  return {
+    r: parseInt(hex.slice(0, 2), 16),
+    g: parseInt(hex.slice(2, 4), 16),
+    b: parseInt(hex.slice(4, 6), 16)
+  };
+}
+
+function mixColors(baseColor, mixColor, ratio) {
+  const weight = clampNumber(ratio, 0, 1);
+  const base = parseHexColor(baseColor);
+  const overlay = parseHexColor(mixColor);
+
+  return {
+    r: Math.round(base.r + ((overlay.r - base.r) * weight)),
+    g: Math.round(base.g + ((overlay.g - base.g) * weight)),
+    b: Math.round(base.b + ((overlay.b - base.b) * weight))
+  };
+}
+
+function rgbToCss(color, alpha = 1) {
+  return `rgba(${color.r}, ${color.g}, ${color.b}, ${alpha})`;
+}
+
+function getIosPreviewLabel(name) {
+  return resolveProjectName(name)
+    .replace(/\s+/g, " ")
+    .slice(0, 8);
+}
+
 function getCurrentIconText() {
   return state.iconTextAuto ? deriveIconText(state.projectName) : sanitizeIconText(state.iconText);
 }
 
 function getIconTextFontSize(text, mode) {
+  if (mode === "ios-preview") {
+    if (text.length >= 3) return "0.56rem";
+    if (text.length === 2) return "0.62rem";
+    return "0.68rem";
+  }
+
   if (mode === "editor") {
     if (text.length >= 3) return "clamp(3.3rem, 7vw, 4.8rem)";
     if (text.length === 2) return "clamp(4.4rem, 9vw, 6rem)";
@@ -136,11 +229,36 @@ function ensureAssetImage(element) {
 }
 
 function getAssetSize(mode) {
+  if (mode === "ios-preview") {
+    const baseSize = 84 - Math.min(14, state.padding * 0.42);
+    return Math.max(62, baseSize);
+  }
+
   const baseSize = mode === "editor"
     ? 100 - Math.min(42, state.padding * 1.35)
     : 96 - Math.min(24, state.padding * 0.55);
 
   return Math.max(mode === "editor" ? 68 : 76, baseSize);
+}
+
+function updateIosPreviewTheme() {
+  if (!elements.iosPreviewScreen || !elements.iosPreviewIcon) {
+    return;
+  }
+
+  const wallpaperTop = mixColors("#f8f7f5", state.backgroundColor, 0.12);
+  const wallpaperBottom = mixColors("#efebe5", state.foregroundColor, 0.05);
+  const wallpaperGlow = mixColors("#ffffff", state.backgroundColor, 0.22);
+  const iconBorder = mixColors("#ffffff", state.backgroundColor, 0.35);
+
+  elements.iosPreviewScreen.style.background = [
+    `radial-gradient(circle at 50% 10%, ${rgbToCss(wallpaperGlow, 0.95)} 0%, rgba(255, 255, 255, 0) 34%)`,
+    `linear-gradient(180deg, ${rgbToCss(wallpaperTop)} 0%, ${rgbToCss(wallpaperBottom)} 100%)`
+  ].join(", ");
+
+  elements.iosPreviewIcon.style.borderColor = rgbToCss(iconBorder, 0.7);
+  elements.iosPreviewIcon.style.boxShadow =
+    `inset 0 1px 0 rgba(255, 255, 255, 0.28), 0 5px 10px ${rgbToCss(mixColors("#0f172a", state.backgroundColor, 0.1), 0.14)}`;
 }
 
 function updateIconStyles(element, textElement, defaultShape, mode = "editor") {
@@ -155,6 +273,10 @@ function updateIconStyles(element, textElement, defaultShape, mode = "editor") {
   if (!hasAsset && mode === "editor") {
     element.style.padding = `${state.padding}px`;
     element.style.transform = `scale(${state.zoom})`;
+  } else if (mode === "ios-preview") {
+    const previewScale = Math.min(1.08, Math.max(0.9, 0.98 + ((state.zoom - 1) * 0.28)));
+    element.style.padding = hasAsset ? "0" : `${Math.max(8, Math.round(state.padding * 0.5))}px`;
+    element.style.transform = `scale(${previewScale})`;
   } else {
     element.style.padding = "0";
     element.style.transform = "none";
@@ -169,7 +291,7 @@ function updateIconStyles(element, textElement, defaultShape, mode = "editor") {
     : "translate(-50%, -50%) scale(1)";
   imageElement.style.mixBlendMode = (state.blendWhiteBackground && hasAsset) ? "multiply" : "normal";
   const iconText = getCurrentIconText();
-  textElement.hidden = hasAsset;
+  textElement.hidden = hasAsset || mode === "ios-preview";
   textElement.textContent = iconText;
   textElement.style.fontSize = getIconTextFontSize(iconText, mode);
 }
@@ -218,6 +340,19 @@ function render() {
   updateColorChip('bg-chip', 'bg-hex', state.backgroundColor);
   updateColorChip('fg-chip', 'fg-hex', state.foregroundColor);
   updateIconStyles(elements.editorIcon, elements.editorIconText, state.shape || "rounded-square", "editor");
+  updateIconStyles(elements.showcaseStoreIcon, elements.showcaseStoreText, state.shape || "rounded-square", "preview");
+  updateIconStyles(elements.showcasePhoneIcon, elements.showcasePhoneText, state.shape || "rounded-square", "preview");
+  updateIconStyles(elements.exampleFintechIcon, elements.exampleFintechText, state.shape || "rounded-square", "preview");
+  updateIconStyles(elements.exampleCommerceIcon, elements.exampleCommerceText, "squircle", "preview");
+  updateIconStyles(elements.exampleMediaIcon, elements.exampleMediaText, "circle", "preview");
+  updateIconStyles(elements.iosPreviewIcon, elements.iosPreviewText, state.shape || "rounded-square", "ios-preview");
+  updateIosPreviewTheme();
+  if (elements.iosPreviewLabel) {
+    elements.iosPreviewLabel.textContent = getIosPreviewLabel(state.projectName);
+  }
+  if (elements.showcasePhoneName) {
+    elements.showcasePhoneName.textContent = resolveProjectName(state.projectName);
+  }
   updateIconStyles(elements.variantRoundIcon, elements.variantRoundText, "circle", "preview");
   updateIconStyles(elements.variantSquircleIcon, elements.variantSquircleText, "squircle", "preview");
   updateIconStyles(elements.variantLegacyIcon, elements.variantLegacyText, "legacy", "preview");
@@ -381,7 +516,7 @@ async function generateExportPlan() {
 
   const fileName =
     extractFilename(response.headers.get("Content-Disposition")) ||
-    `${resolveProjectName(state.projectName).toLowerCase().replace(/\s+/g, "-")}-icons.zip`;
+    "Appicon.zip";
   const zipBlob = await response.blob();
 
   downloadBlob(zipBlob, fileName);
@@ -392,16 +527,7 @@ async function generateExportPlan() {
   elements.exportButtons.forEach((button) => {
     button.disabled = false;
   });
-  setExportMessage(
-    [
-      "Export complete",
-      `Project: ${resolveProjectName(state.projectName)}`,
-      `File: ${fileName}`,
-      "Platforms: Android + iOS",
-      `Saved project: ${state.projectId}`,
-      `Downloaded: ${state.lastExportAt}`
-    ].join("\n")
-  );
+  setExportMessage(buildExportSummary(fileName));
   elements.apiStatus.textContent = `Export ready: ${fileName}`;
 }
 

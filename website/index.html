@@ -3,8 +3,8 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>IconForge Studio</title>
-    <meta name="description" content="IconForge Studio — Professional app icon workshop for iOS and Android. Generate every required icon size instantly." />
+    <title>Appicon Studio</title>
+    <meta name="description" content="Appicon Studio — Professional app icon workshop for iOS and Android. Generate every required icon size instantly." />
     <meta name="theme-color" content="#7b9ef0" />
 
     <!-- Favicon & Site Icons -->
@@ -31,13 +31,13 @@
           <img
             class="brand-mark brand-mark-img"
             src="/website/assets/icons/Gemini_Generated_Image_wc0y3fwc0y3fwc0y-removebg-preview.png"
-            alt="IconForge Studio logo"
+            alt="Appicon Studio logo"
             width="100"
             height="100"
           />
           <div>
             <!--<p class="eyebrow">Live App Icon Workshop</p>-->
-            <h1>ICONFORGE STUDIO</h1>
+            <h1>Appicon Studio</h1>
           </div>
         </div>
         <div class="topbar-links">
@@ -180,39 +180,78 @@
             </aside>
 
             <section class="canvas-panel">
-              <div class="panel-heading">
+              <!-- <div class="panel-heading">
                 <h3>Working Canvas</h3>
-                <p>Direct edit area with a safe-zone guide.</p>
-              </div>
+                <p>Direct edit area with a safe-zone guide and live device previews.</p>
+              </div> -->
 
               <div class="canvas-display">
-                <svg class="canvas-grid-svg" viewBox="0 0 400 400" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <!-- Outer squircle guide -->
-                  <rect x="24" y="24" width="352" height="352" rx="80" stroke="currentColor" stroke-width="1.5"/>
-                  <!-- Inner squircle guide -->
-                  <rect x="64" y="64" width="272" height="272" rx="60" stroke="currentColor" stroke-width="1.5"/>
-                  <!-- Large circle -->
-                  <circle cx="200" cy="200" r="176" stroke="currentColor" stroke-width="1.5"/>
-                  <!-- Medium circle -->
-                  <circle cx="200" cy="200" r="100" stroke="currentColor" stroke-width="1.5"/>
-                  <!-- Axis Lines -->
-                  <line x1="200" y1="0" x2="200" y2="400" stroke="currentColor" stroke-width="1.5"/>
-                  <line x1="0" y1="200" x2="400" y2="200" stroke="currentColor" stroke-width="1.5"/>
-                  <!-- Diagonal Lines -->
-                  <line x1="20" y1="20" x2="380" y2="380" stroke="currentColor" stroke-width="1.5"/>
-                  <line x1="380" y1="20" x2="20" y2="380" stroke="currentColor" stroke-width="1.5"/>
-                </svg>
+                <div class="studio-preview-layout">
+                  <div class="studio-canvas-stage">
+                    <svg class="canvas-grid-svg" viewBox="0 0 400 400" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <rect x="24" y="24" width="352" height="352" rx="80" stroke="currentColor" stroke-width="1.5"/>
+                      <rect x="64" y="64" width="272" height="272" rx="60" stroke="currentColor" stroke-width="1.5"/>
+                      <circle cx="200" cy="200" r="176" stroke="currentColor" stroke-width="1.5"/>
+                      <circle cx="200" cy="200" r="100" stroke="currentColor" stroke-width="1.5"/>
+                      <line x1="200" y1="0" x2="200" y2="400" stroke="currentColor" stroke-width="1.5"/>
+                      <line x1="0" y1="200" x2="400" y2="200" stroke="currentColor" stroke-width="1.5"/>
+                      <line x1="20" y1="20" x2="380" y2="380" stroke="currentColor" stroke-width="1.5"/>
+                      <line x1="380" y1="20" x2="20" y2="380" stroke="currentColor" stroke-width="1.5"/>
+                    </svg>
 
-                <div class="safe-zone" hidden></div>
-                <div class="editor-icon icon-shape-rounded-square" id="editor-icon">
-                  <span id="editor-icon-text">NN</span>
+                    <div class="safe-zone" hidden></div>
+                    <div class="editor-icon icon-shape-rounded-square" id="editor-icon">
+                      <span id="editor-icon-text">NN</span>
+                    </div>
+                  </div>
+
+                  <div class="device-preview-stack">
+                    <div class="device-preview-header">
+                      <!-- <span class="eyebrow">iOS Preview</span> -->
+                      <strong>iPhone mockup</strong>
+                    </div>
+
+                    <div class="iphone-preview-shell">
+                      <div class="iphone-frame">
+                        <div class="iphone-side-button iphone-side-left-top" aria-hidden="true"></div>
+                        <div class="iphone-side-button iphone-side-left-bottom" aria-hidden="true"></div>
+                        <div class="iphone-side-button iphone-side-right" aria-hidden="true"></div>
+                        <div class="iphone-screen" id="ios-preview-screen">
+                          <div class="iphone-dynamic-island" aria-hidden="true"></div>
+                          <div class="iphone-home-preview">
+                            <div class="iphone-home-grid">
+                              <div class="iphone-app-slot is-active">
+                                <div class="iphone-app-icon icon-shape-rounded-square" id="ios-preview-icon">
+                                  <span id="ios-preview-text">NN</span>
+                                </div>
+                                <p class="iphone-app-label" id="ios-preview-label">Nebula</p>
+                              </div>
+                              <div class="iphone-app-slot is-ghost"><span class="iphone-ghost-icon" aria-hidden="true"></span><p class="iphone-app-label">Mail</p></div>
+                              <div class="iphone-app-slot is-ghost"><span class="iphone-ghost-icon" aria-hidden="true"></span><p class="iphone-app-label">Maps</p></div>
+                              <div class="iphone-app-slot is-ghost"><span class="iphone-ghost-icon" aria-hidden="true"></span><p class="iphone-app-label">Photos</p></div>
+                              <div class="iphone-app-slot is-ghost"><span class="iphone-ghost-icon" aria-hidden="true"></span><p class="iphone-app-label">Notes</p></div>
+                              <div class="iphone-app-slot is-ghost"><span class="iphone-ghost-icon" aria-hidden="true"></span><p class="iphone-app-label">Store</p></div>
+                              <div class="iphone-app-slot is-ghost"><span class="iphone-ghost-icon" aria-hidden="true"></span><p class="iphone-app-label">Files</p></div>
+                              <div class="iphone-app-slot is-ghost"><span class="iphone-ghost-icon" aria-hidden="true"></span><p class="iphone-app-label">Music</p></div>
+                            </div>
+                            <div class="iphone-dock" aria-hidden="true">
+                              <span class="iphone-dock-icon"></span>
+                              <span class="iphone-dock-icon"></span>
+                              <span class="iphone-dock-icon"></span>
+                              <span class="iphone-dock-icon"></span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
 
               <div class="canvas-footer">
                 <div>
                   <p class="eyebrow" style="text-transform: uppercase;">PREVIEW MODE</p>
-                  <strong>Simple studio view</strong>
+                  <strong>Studio + iPhone view</strong>
                 </div>
                 <div class="legend-row">
                   <span class="legend-pill">Android ready</span>
@@ -225,7 +264,7 @@
               <aside class="panel preview-panel">
               <div class="panel-heading">
                 <h3>Design Variations</h3>
-                <p>Round, squircle, and legacy app icon previews.</p>
+                <p>Round, squircle & legacy<!--  --> icon previews.</p>
               </div>
               <div class="live-preview-shell">
                 <div class="variant-row">
@@ -247,7 +286,7 @@
               <div class="preview-stats">
                 <div>
                   <span>iOS Pack</span>
-                  <strong>43 files</strong>
+                  <strong>22 files</strong>
                 </div>
                 <div>
                   <span>Android Pack</span>
@@ -293,11 +332,10 @@
                 <div>
                   <h4>iOS</h4>
                   <ul class="size-list">
-                    <li><span>iPhone</span><strong>11 files</strong></li>
-                    <li><span>iPad</span><strong>13 files</strong></li>
-                    <li><span>watchOS</span><strong>8 files</strong></li>
-                    <li><span>macOS</span><strong>11 files</strong></li>
-                    <li><span>Total Apple Pack</span><strong>43 files</strong></li>
+                    <li><span>iPhone</span><strong>10 files</strong></li>
+                    <li><span>iPad</span><strong>11 files</strong></li>
+                    <li><span>App Store</span><strong>1 file</strong></li>
+                    <li><span>Total Apple Pack</span><strong>22 files</strong></li>
                   </ul>
                 </div>
               </div>
@@ -305,11 +343,46 @@
 
             <div class="panel code-panel">
               <div class="panel-heading">
-                <h3>Download Status</h3>
-                <p>The backend now returns a zip attachment and the browser downloads it automatically.</p>
+                <h3>Generated Export Plan</h3>
+                <p>The backend returns a zip attachment, and this panel shows what was generated before download.</p>
               </div>
-              <pre id="export-output">Click "Generate Export Plan" to build the export package and download the zip.</pre>
+              <pre id="export-output">Click "Generate Export Plan" to build Android and iOS packages, then download the zip automatically.</pre>
             </div>
+          </div>
+        </section>
+
+      
+        <section class="about-section" id="about">
+          <div class="section-heading simple-heading">
+            <h2>About Appicon Studio</h2>
+            <p>Built for teams that want a faster way to move from logo asset to export-ready app icon package.</p>
+          </div>
+
+          <div class="about-layout">
+            <article class="panel about-story-card">
+              <span class="eyebrow">About The Product</span>
+              <h3>A small icon workflow with a full product mindset</h3>
+              <p>Appicon Studio is designed for founders, designers, and mobile teams who need a practical way to shape an app icon, preview it in context, and export the required Apple and Android assets without building every file by hand.</p>
+              <p>The studio keeps the workflow simple: upload, refine, preview, and export. The goal is to help you judge the icon as a product surface, not only as a square image.</p>
+            </article>
+
+            <article class="panel about-features-card">
+              <span class="eyebrow">What You Get</span>
+              <div class="about-feature-list">
+                <div class="about-feature-item">
+                  <strong>Live Studio Editing</strong>
+                  <p>Adjust icon text, colors, shape, zoom, and padding with instant visual feedback.</p>
+                </div>
+                <div class="about-feature-item">
+                  <strong>Device & Store Preview</strong>
+                  <p>Review the icon on an iPhone-style screen and in larger promotional surfaces before export.</p>
+                </div>
+                <div class="about-feature-item">
+                  <strong>Clean Export Package</strong>
+                  <p>Download Android sizes, iOS app icons, and store graphics with a simpler package structure.</p>
+                </div>
+              </div>
+            </article>
           </div>
         </section>
       </main>

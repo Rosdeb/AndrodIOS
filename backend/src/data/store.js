@@ -44,16 +44,16 @@ const exports = [
         "mipmap-xhdpi/ic_launcher.png",
         "mipmap-xxhdpi/ic_launcher.png",
         "mipmap-xxxhdpi/ic_launcher.png",
-        "play-store-512.png"
+        "playstore.png"
       ],
       ios: [
-        "AppIcon.appiconset/Icon-App-1024x1024@1x.png",
-        "AppIcon.appiconset/Icon-App-60x60@3x.png",
-        "AppIcon.appiconset/Icon-App-60x60@2x.png",
-        "AppIcon.appiconset/Icon-App-83.5x83.5@2x.png",
-        "AppIcon.appiconset/Icon-App-76x76@2x.png",
-        "AppIcon.appiconset/Icon-App-40x40@3x.png",
-        "AppIcon.appiconset/Icon-App-29x29@3x.png",
+        "appstore.png",
+        "AppIcon.appiconset/iphone-app-60@3x.png",
+        "AppIcon.appiconset/iphone-app-60@2x.png",
+        "AppIcon.appiconset/ipad-pro-83.5@2x.png",
+        "AppIcon.appiconset/ipad-app-76@2x.png",
+        "AppIcon.appiconset/iphone-spotlight-40@3x.png",
+        "AppIcon.appiconset/iphone-settings-29@3x.png",
         "AppIcon.appiconset/Contents.json"
       ]
     }

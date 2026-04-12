@@ -23,57 +23,37 @@ const androidSizes = [
   { folder: "mipmap-xhdpi", size: "96x96", file: "ic_launcher.png" },
   { folder: "mipmap-xxhdpi", size: "144x144", file: "ic_launcher.png" },
   { folder: "mipmap-xxxhdpi", size: "192x192", file: "ic_launcher.png" },
-  { folder: "play-store", size: "512x512", file: "play-store-512.png" }
+  { folder: "play-store", size: "512x512", file: "playstore.png" }
 ];
 
 const iosSizes = [
-  { role: "iphone-notification-2x", idiom: "iphone", size: "20x20", scale: "2x", pixelSize: "40x40", file: "Icon-iPhone-Notification-20x20@2x.png" },
-  { role: "iphone-notification-3x", idiom: "iphone", size: "20x20", scale: "3x", pixelSize: "60x60", file: "Icon-iPhone-Notification-20x20@3x.png" },
-  { role: "iphone-settings-2x", idiom: "iphone", size: "29x29", scale: "2x", pixelSize: "58x58", file: "Icon-iPhone-Settings-29x29@2x.png" },
-  { role: "iphone-settings-3x", idiom: "iphone", size: "29x29", scale: "3x", pixelSize: "87x87", file: "Icon-iPhone-Settings-29x29@3x.png" },
-  { role: "iphone-spotlight-2x", idiom: "iphone", size: "40x40", scale: "2x", pixelSize: "80x80", file: "Icon-iPhone-Spotlight-40x40@2x.png" },
-  { role: "iphone-spotlight-3x", idiom: "iphone", size: "40x40", scale: "3x", pixelSize: "120x120", file: "Icon-iPhone-Spotlight-40x40@3x.png" },
-  { role: "iphone-app-2x", idiom: "iphone", size: "60x60", scale: "2x", pixelSize: "120x120", file: "Icon-iPhone-App-60x60@2x.png" },
-  { role: "iphone-app-3x", idiom: "iphone", size: "60x60", scale: "3x", pixelSize: "180x180", file: "Icon-iPhone-App-60x60@3x.png" },
-  { role: "iphone-marketing", idiom: "ios-marketing", size: "1024x1024", scale: "1x", pixelSize: "1024x1024", file: "Icon-App-Store-1024x1024@1x.png" },
-  { role: "iphone-message-2x", idiom: "iphone", size: "27x27", scale: "2x", pixelSize: "54x54", file: "Icon-iPhone-Message-27x27@2x.png" },
-  { role: "iphone-message-3x", idiom: "iphone", size: "27x27", scale: "3x", pixelSize: "81x81", file: "Icon-iPhone-Message-27x27@3x.png" },
-  { role: "ipad-notification-1x", idiom: "ipad", size: "20x20", scale: "1x", pixelSize: "20x20", file: "Icon-iPad-Notification-20x20@1x.png" },
-  { role: "ipad-notification-2x", idiom: "ipad", size: "20x20", scale: "2x", pixelSize: "40x40", file: "Icon-iPad-Notification-20x20@2x.png" },
-  { role: "ipad-settings-1x", idiom: "ipad", size: "29x29", scale: "1x", pixelSize: "29x29", file: "Icon-iPad-Settings-29x29@1x.png" },
-  { role: "ipad-settings-2x", idiom: "ipad", size: "29x29", scale: "2x", pixelSize: "58x58", file: "Icon-iPad-Settings-29x29@2x.png" },
-  { role: "ipad-spotlight-1x", idiom: "ipad", size: "40x40", scale: "1x", pixelSize: "40x40", file: "Icon-iPad-Spotlight-40x40@1x.png" },
-  { role: "ipad-spotlight-2x", idiom: "ipad", size: "40x40", scale: "2x", pixelSize: "80x80", file: "Icon-iPad-Spotlight-40x40@2x.png" },
-  { role: "ipad-app-1x", idiom: "ipad", size: "76x76", scale: "1x", pixelSize: "76x76", file: "Icon-iPad-App-76x76@1x.png" },
-  { role: "ipad-app-2x", idiom: "ipad", size: "76x76", scale: "2x", pixelSize: "152x152", file: "Icon-iPad-App-76x76@2x.png" },
-  { role: "ipad-pro-2x", idiom: "ipad", size: "83.5x83.5", scale: "2x", pixelSize: "167x167", file: "Icon-iPad-Pro-83.5x83.5@2x.png" },
-  { role: "ipad-marketing", idiom: "ios-marketing", size: "1024x1024", scale: "1x", pixelSize: "1024x1024", file: "Icon-iPad-App-Store-1024x1024@1x.png" },
-  { role: "ipad-stage-manager-2x", idiom: "ipad", size: "50x50", scale: "2x", pixelSize: "100x100", file: "Icon-iPad-Stage-Manager-50x50@2x.png" },
-  { role: "ipad-message-1x", idiom: "ipad", size: "27x27", scale: "1x", pixelSize: "27x27", file: "Icon-iPad-Message-27x27@1x.png" },
-  { role: "ipad-message-2x", idiom: "ipad", size: "27x27", scale: "2x", pixelSize: "54x54", file: "Icon-iPad-Message-27x27@2x.png" },
-  { role: "watch-notification-38mm", idiom: "watch", size: "24x24", scale: "2x", subtype: "38mm", pixelSize: "48x48", file: "Icon-Watch-Notification-24x24@2x-38mm.png" },
-  { role: "watch-notification-42mm", idiom: "watch", size: "27.5x27.5", scale: "2x", subtype: "42mm", pixelSize: "55x55", file: "Icon-Watch-Notification-27.5x27.5@2x-42mm.png" },
-  { role: "watch-home-38mm", idiom: "watch", size: "29x29", scale: "2x", subtype: "38mm", pixelSize: "58x58", file: "Icon-Watch-Home-29x29@2x-38mm.png" },
-  { role: "watch-home-42mm", idiom: "watch", size: "29x29", scale: "3x", subtype: "42mm", pixelSize: "87x87", file: "Icon-Watch-Home-29x29@3x-42mm.png" },
-  { role: "watch-short-look-38mm", idiom: "watch", size: "40x40", scale: "2x", subtype: "38mm", pixelSize: "80x80", file: "Icon-Watch-ShortLook-40x40@2x-38mm.png" },
-  { role: "watch-short-look-42mm", idiom: "watch", size: "44x44", scale: "2x", subtype: "42mm", pixelSize: "88x88", file: "Icon-Watch-ShortLook-44x44@2x-42mm.png" },
-  { role: "watch-app-store", idiom: "watch-marketing", size: "1024x1024", scale: "1x", pixelSize: "1024x1024", file: "Icon-Watch-App-Store-1024x1024@1x.png" },
-  { role: "watch-companion-settings", idiom: "watch", size: "29x29", scale: "2x", subtype: "companion-settings", pixelSize: "58x58", file: "Icon-Watch-Companion-Settings-29x29@2x.png" },
-  { role: "mac-16", idiom: "mac", size: "16x16", scale: "1x", pixelSize: "16x16", file: "Icon-macOS-16x16@1x.png" },
-  { role: "mac-16-2x", idiom: "mac", size: "16x16", scale: "2x", pixelSize: "32x32", file: "Icon-macOS-16x16@2x.png" },
-  { role: "mac-32", idiom: "mac", size: "32x32", scale: "1x", pixelSize: "32x32", file: "Icon-macOS-32x32@1x.png" },
-  { role: "mac-32-2x", idiom: "mac", size: "32x32", scale: "2x", pixelSize: "64x64", file: "Icon-macOS-32x32@2x.png" },
-  { role: "mac-128", idiom: "mac", size: "128x128", scale: "1x", pixelSize: "128x128", file: "Icon-macOS-128x128@1x.png" },
-  { role: "mac-128-2x", idiom: "mac", size: "128x128", scale: "2x", pixelSize: "256x256", file: "Icon-macOS-128x128@2x.png" },
-  { role: "mac-256", idiom: "mac", size: "256x256", scale: "1x", pixelSize: "256x256", file: "Icon-macOS-256x256@1x.png" },
-  { role: "mac-256-2x", idiom: "mac", size: "256x256", scale: "2x", pixelSize: "512x512", file: "Icon-macOS-256x256@2x.png" },
-  { role: "mac-512", idiom: "mac", size: "512x512", scale: "1x", pixelSize: "512x512", file: "Icon-macOS-512x512@1x.png" },
-  { role: "mac-512-2x", idiom: "mac", size: "512x512", scale: "2x", pixelSize: "1024x1024", file: "Icon-macOS-512x512@2x.png" },
-  { role: "mac-marketing", idiom: "mac-marketing", size: "1024x1024", scale: "1x", pixelSize: "1024x1024", file: "Icon-macOS-App-Store-1024x1024@1x.png" }
+  { role: "iphone-notification-2x", idiom: "iphone", size: "20x20", scale: "2x", pixelSize: "40x40", file: "iphone-notification-20@2x.png" },
+  { role: "iphone-notification-3x", idiom: "iphone", size: "20x20", scale: "3x", pixelSize: "60x60", file: "iphone-notification-20@3x.png" },
+  { role: "iphone-settings-2x", idiom: "iphone", size: "29x29", scale: "2x", pixelSize: "58x58", file: "iphone-settings-29@2x.png" },
+  { role: "iphone-settings-3x", idiom: "iphone", size: "29x29", scale: "3x", pixelSize: "87x87", file: "iphone-settings-29@3x.png" },
+  { role: "iphone-spotlight-2x", idiom: "iphone", size: "40x40", scale: "2x", pixelSize: "80x80", file: "iphone-spotlight-40@2x.png" },
+  { role: "iphone-spotlight-3x", idiom: "iphone", size: "40x40", scale: "3x", pixelSize: "120x120", file: "iphone-spotlight-40@3x.png" },
+  { role: "iphone-app-2x", idiom: "iphone", size: "60x60", scale: "2x", pixelSize: "120x120", file: "iphone-app-60@2x.png" },
+  { role: "iphone-app-3x", idiom: "iphone", size: "60x60", scale: "3x", pixelSize: "180x180", file: "iphone-app-60@3x.png" },
+  { role: "iphone-message-2x", idiom: "iphone", size: "27x27", scale: "2x", pixelSize: "54x54", file: "iphone-message-27@2x.png" },
+  { role: "iphone-message-3x", idiom: "iphone", size: "27x27", scale: "3x", pixelSize: "81x81", file: "iphone-message-27@3x.png" },
+  { role: "ipad-notification-1x", idiom: "ipad", size: "20x20", scale: "1x", pixelSize: "20x20", file: "ipad-notification-20.png" },
+  { role: "ipad-notification-2x", idiom: "ipad", size: "20x20", scale: "2x", pixelSize: "40x40", file: "ipad-notification-20@2x.png" },
+  { role: "ipad-settings-1x", idiom: "ipad", size: "29x29", scale: "1x", pixelSize: "29x29", file: "ipad-settings-29.png" },
+  { role: "ipad-settings-2x", idiom: "ipad", size: "29x29", scale: "2x", pixelSize: "58x58", file: "ipad-settings-29@2x.png" },
+  { role: "ipad-spotlight-1x", idiom: "ipad", size: "40x40", scale: "1x", pixelSize: "40x40", file: "ipad-spotlight-40.png" },
+  { role: "ipad-spotlight-2x", idiom: "ipad", size: "40x40", scale: "2x", pixelSize: "80x80", file: "ipad-spotlight-40@2x.png" },
+  { role: "ipad-app-1x", idiom: "ipad", size: "76x76", scale: "1x", pixelSize: "76x76", file: "ipad-app-76.png" },
+  { role: "ipad-app-2x", idiom: "ipad", size: "76x76", scale: "2x", pixelSize: "152x152", file: "ipad-app-76@2x.png" },
+  { role: "ipad-pro-2x", idiom: "ipad", size: "83.5x83.5", scale: "2x", pixelSize: "167x167", file: "ipad-pro-83.5@2x.png" },
+  { role: "ipad-message-1x", idiom: "ipad", size: "27x27", scale: "1x", pixelSize: "27x27", file: "ipad-message-27.png" },
+  { role: "ipad-message-2x", idiom: "ipad", size: "27x27", scale: "2x", pixelSize: "54x54", file: "ipad-message-27@2x.png" },
+  { role: "ios-marketing", idiom: "ios-marketing", size: "1024x1024", scale: "1x", pixelSize: "1024x1024", file: "appstore.png" }
 ];
 
-const masterIconSize = 1024;
+const masterIconSize = 2048;
 const editorReferenceSize = 280;
+const iosArtworkScaleMultiplier = 0.75;
 
 function sanitizePackageName(name) {
   const normalized = String(name || "app-icons")
@@ -144,13 +124,14 @@ function getArtworkOffset(project, size) {
   };
 }
 
-function buildTextOverlaySvg(project, size) {
+function buildTextOverlaySvg(project, size, scaleMultiplier = 1) {
   const text = String(project.icon.text ?? "");
-  const fontSize = text.length >= 3
+  const baseFontSize = text.length >= 3
     ? Math.round(size * 0.27)
     : text.length === 2
       ? Math.round(size * 0.34)
       : Math.round(size * 0.5);
+  const fontSize = Math.max(1, Math.round(baseFontSize * scaleMultiplier));
 
   return Buffer.from(
     `
@@ -169,28 +150,23 @@ function buildTextOverlaySvg(project, size) {
   );
 }
 
-async function buildArtworkLayer(project, sourceAsset, size) {
+async function buildArtworkLayer(project, sourceAsset, size, scaleMultiplier = 1) {
   if (!sourceAsset?.buffer) {
-    return buildTextOverlaySvg(project, size);
+    return buildTextOverlaySvg(project, size, scaleMultiplier);
   }
 
-  const artworkScale = getArtworkScale(project);
+  const artworkScale = getArtworkScale(project) * scaleMultiplier;
   const scaledSize = Math.max(1, Math.round(size * artworkScale));
   const { x, y } = getArtworkOffset(project, size);
   const transparent = { r: 0, g: 0, b: 0, alpha: 0 };
-  const containedBuffer = await sharp(sourceAsset.buffer)
+  const scaledBuffer = await sharp(sourceAsset.buffer)
     .resize({
-      width: size,
-      height: size,
+      width: scaledSize,
+      height: scaledSize,
       fit: "contain",
       withoutEnlargement: false,
-      background: transparent
-    })
-    .png()
-    .toBuffer();
-  const scaledBuffer = await sharp(containedBuffer)
-    .resize(scaledSize, scaledSize, {
-      fit: "fill"
+      background: transparent,
+      kernel: sharp.kernel.lanczos3
     })
     .png()
     .toBuffer();
@@ -234,7 +210,8 @@ async function buildArtworkLayer(project, sourceAsset, size) {
     .toBuffer();
 }
 
-async function renderMasterIcon(project, sourceAsset) {
+async function renderMasterIcon(project, sourceAsset, options = {}) {
+  const scaleMultiplier = options.scaleMultiplier ?? 1;
   const backgroundColor = project.icon.backgroundColor || "#ffffff";
   const canvas = sharp({
     create: {
@@ -244,7 +221,7 @@ async function renderMasterIcon(project, sourceAsset) {
       background: backgroundColor
     }
   });
-  const artworkLayer = await buildArtworkLayer(project, sourceAsset, masterIconSize);
+  const artworkLayer = await buildArtworkLayer(project, sourceAsset, masterIconSize, scaleMultiplier);
   const artworkBlend = sourceAsset?.buffer && project.icon.blendWhiteBackground ? "multiply" : "over";
 
   return canvas
@@ -262,7 +239,16 @@ async function renderMasterIcon(project, sourceAsset) {
 async function renderOutputIcon(masterBuffer, pixelSize) {
   return sharp(masterBuffer)
     .resize(pixelSize, pixelSize, {
-      fit: "fill"
+      fit: "fill",
+      kernel: sharp.kernel.lanczos3
+    })
+    .sharpen({
+      sigma: 0.65,
+      m1: 0.8,
+      m2: 2,
+      x1: 2,
+      y2: 10,
+      y3: 20
     })
     .removeAlpha()
     .png()
@@ -296,14 +282,16 @@ async function loadProjectAsset(project) {
 
 function buildContentsJson() {
   return {
-    images: iosSizes.map((item) => ({
-      filename: item.file,
-      idiom: item.idiom,
-      scale: item.scale,
-      size: item.size,
-      role: item.role,
-      ...(item.subtype ? { subtype: item.subtype } : {})
-    })),
+    images: iosSizes
+      .filter((item) => item.idiom !== "ios-marketing")
+      .map((item) => ({
+        filename: item.file,
+        idiom: item.idiom,
+        scale: item.scale,
+        size: item.size,
+        role: item.role,
+        ...(item.subtype ? { subtype: item.subtype } : {})
+      })),
     info: {
       author: "iconforge-studio",
       version: 1
@@ -314,76 +302,42 @@ function buildContentsJson() {
 async function createFileSet(rootDirectory, packageRootName, project, platforms) {
   const exportRoot = path.join(rootDirectory, packageRootName);
   const sourceAsset = await loadProjectAsset(project);
-  const sourceExtension =
-    project.icon.assetMimeType === "image/svg+xml"
-      ? "svg"
-      : project.icon.assetMimeType === "image/jpeg"
-        ? "jpg"
-        : "png";
-  const renderedMasterIcon = await renderMasterIcon(project, sourceAsset);
-  const readmeLines = [
-    `Project: ${project.name}`,
-    `Platforms: ${platforms.join(", ")}`,
-    "",
-    "This export packages rendered Android and iOS icon PNGs based on your saved",
-    "editor settings, plus the project manifest and original uploaded source asset."
-  ];
+  const renderedAndroidMasterIcon = platforms.includes("android")
+    ? await renderMasterIcon(project, sourceAsset)
+    : null;
+  const renderedIosMasterIcon = platforms.includes("ios")
+    ? await renderMasterIcon(project, sourceAsset, { scaleMultiplier: iosArtworkScaleMultiplier })
+    : null;
 
   await mkdir(exportRoot, { recursive: true });
-  await writeFile(
-    path.join(exportRoot, "manifest.json"),
-    JSON.stringify(
-      {
-        projectId: project.id,
-        name: project.name,
-        generatedAt: new Date().toISOString(),
-        platforms,
-        icon: {
-          text: project.icon.text,
-          shape: project.icon.shape,
-          backgroundColor: project.icon.backgroundColor,
-          foregroundColor: project.icon.foregroundColor,
-          zoom: project.icon.zoom,
-          padding: project.icon.padding,
-          blendWhiteBackground: project.icon.blendWhiteBackground,
-          shadow: project.icon.shadow
-        },
-        outputs: {
-          android: platforms.includes("android") ? androidSizes : [],
-          ios: platforms.includes("ios") ? iosSizes : []
-        }
-      },
-      null,
-      2
-    )
-  );
-  await writeFile(path.join(exportRoot, "README.txt"), readmeLines.join("\n"));
-
-  if (sourceAsset) {
-    const sourceDirectory = path.join(exportRoot, "source");
-    await mkdir(sourceDirectory, { recursive: true });
-    await writeFile(
-      path.join(sourceDirectory, `original-icon.${sourceExtension}`),
-      sourceAsset.buffer
-    );
-  }
 
   if (platforms.includes("android")) {
     for (const item of androidSizes) {
-      const destination = path.join(exportRoot, "android", item.folder, item.file);
+      const destination = item.folder === "play-store"
+        ? path.join(exportRoot, item.file)
+        : path.join(exportRoot, "android", item.folder, item.file);
       await mkdir(path.dirname(destination), { recursive: true });
-      await writeFile(destination, await renderOutputIcon(renderedMasterIcon, getOutputPixelSize(item.size)));
+      await writeFile(destination, await renderOutputIcon(renderedAndroidMasterIcon, getOutputPixelSize(item.size)));
     }
   }
 
   if (platforms.includes("ios")) {
+    const marketingIcon = iosSizes.find((item) => item.idiom === "ios-marketing");
+    const assetCatalogIcons = iosSizes.filter((item) => item.idiom !== "ios-marketing");
     const appIconSetDirectory = path.join(exportRoot, "ios", "AppIcon.appiconset");
     await mkdir(appIconSetDirectory, { recursive: true });
 
-    for (const item of iosSizes) {
+    for (const item of assetCatalogIcons) {
       await writeFile(
         path.join(appIconSetDirectory, item.file),
-        await renderOutputIcon(renderedMasterIcon, getOutputPixelSize(item.pixelSize))
+        await renderOutputIcon(renderedIosMasterIcon, getOutputPixelSize(item.pixelSize))
+      );
+    }
+
+    if (marketingIcon) {
+      await writeFile(
+        path.join(exportRoot, marketingIcon.file),
+        await renderOutputIcon(renderedIosMasterIcon, getOutputPixelSize(marketingIcon.pixelSize))
       );
     }
 
@@ -398,13 +352,47 @@ async function createFileSet(rootDirectory, packageRootName, project, platforms)
 
 async function buildZipBuffer(exportRoot, packageRootName) {
   const zipFilePath = path.join(path.dirname(exportRoot), `${packageRootName}.zip`);
-  await execFileAsync("zip", ["-rq", zipFilePath, packageRootName], {
-    cwd: path.dirname(exportRoot)
-  });
+  const workingDirectory = path.dirname(exportRoot);
 
-  const buffer = await readFile(zipFilePath);
-  await rm(zipFilePath, { force: true });
-  return buffer;
+  const createZipWithCommand = async (command, args, options = {}) => {
+    await execFileAsync(command, args, options);
+    return readFile(zipFilePath);
+  };
+
+  if (process.platform === "win32") {
+    const escapePowerShell = (value) => String(value).replace(/'/g, "''");
+    const windowsStrategies = [
+      () => createZipWithCommand("powershell.exe", [
+        "-NoProfile",
+        "-NonInteractive",
+        "-Command",
+        `Compress-Archive -LiteralPath '${escapePowerShell(exportRoot)}' -DestinationPath '${escapePowerShell(zipFilePath)}' -Force`
+      ]),
+      () => createZipWithCommand("tar.exe", ["-a", "-c", "-f", zipFilePath, packageRootName], {
+        cwd: workingDirectory
+      })
+    ];
+
+    let lastError;
+
+    for (const strategy of windowsStrategies) {
+      try {
+        const buffer = await strategy();
+        await rm(zipFilePath, { force: true });
+        return buffer;
+      } catch (error) {
+        lastError = error;
+      }
+    }
+
+    throw lastError;
+  } else {
+    const buffer = await createZipWithCommand("zip", ["-rq", zipFilePath, packageRootName], {
+      cwd: workingDirectory
+    });
+    await rm(zipFilePath, { force: true });
+    return buffer;
+  }
 }
 
 function createExport(projectId, payload = {}) {
@@ -412,6 +400,7 @@ function createExport(projectId, payload = {}) {
   const platforms = payload.platforms || project.platforms || ["android", "ios"];
   const country = payload.country || "Unknown";
   const exportId = randomUUID();
+  const packageName = "Appicon.zip";
 
   if (!Array.isArray(platforms) || platforms.length === 0) {
     throw createHttpError(400, "At least one export platform is required");
@@ -427,11 +416,11 @@ function createExport(projectId, payload = {}) {
     createdAt: new Date().toISOString(),
     files: {
       android: platforms.includes("android")
-        ? androidSizes.map((item) => `${item.folder}/${item.file}`)
+        ? androidSizes.map((item) => item.folder === "play-store" ? item.file : `${item.folder}/${item.file}`)
         : [],
       ios: platforms.includes("ios")
         ? [
-            ...iosSizes.map((item) => `AppIcon.appiconset/${item.file}`),
+            ...iosSizes.map((item) => item.idiom === "ios-marketing" ? item.file : `AppIcon.appiconset/${item.file}`),
             "AppIcon.appiconset/Contents.json"
           ]
         : []
@@ -455,7 +444,7 @@ function createExport(projectId, payload = {}) {
   return {
     exportId,
     projectId,
-    packageName: `${sanitizePackageName(project.name)}-icons.zip`,
+    packageName,
     platforms,
     manifest: {
       android: platforms.includes("android") ? androidSizes : [],
