@@ -90,7 +90,16 @@
 
               <label class="field">
                 <span>Icon Text</span>
-                <input id="icon-text" type="text" value="NN" maxlength="2" />
+                <div class="icon-text-control">
+                  <button id="icon-text-auto-toggle" class="field-toggle-button" type="button" aria-pressed="true" aria-label="Auto icon text toggle">
+                    <span class="field-toggle-label">Auto</span>
+                    <span class="field-toggle-switch" aria-hidden="true">
+                      <span class="field-toggle-thumb"></span>
+                    </span>
+                  </button>
+                  <input id="icon-text" type="text" value="NN" maxlength="3" />
+                </div>
+                <small id="icon-text-help">When Auto is true, icon text follows the project name. Turn it off for full manual control up to 3 characters.</small>
               </label>
 
               <div class="color-field-group">
@@ -128,9 +137,9 @@
               <div class="slider-field">
                 <div class="slider-top-row">
                   <span class="slider-label">Size:</span>
-                  <span class="slider-percent" id="zoom-output">0% zoom</span>
+                  <span class="slider-percent" id="zoom-output">-20% zoom</span>
                 </div>
-                <input id="zoom-range" type="range" min="0.8" max="1.4" step="0.05" value="1.1" class="styled-range" />
+                <input id="zoom-range" type="range" min="0.8" max="1.4" step="0.05" value="0.8" class="styled-range" />
                 <div class="slider-ticks">
                   <span>Zoom</span>
                   <span>Normal</span>

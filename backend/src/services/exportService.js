@@ -121,13 +121,6 @@ function escapeXml(value) {
     .replace(/'/g, "&apos;");
 }
 
-function clampText(value) {
-  return String(value || "")
-    .trim()
-    .slice(0, 2)
-    .toUpperCase() || "IF";
-}
-
 function getOutputPixelSize(sizeLabel) {
   return Math.round(Number(String(sizeLabel).split("x")[0]));
 }
@@ -152,8 +145,12 @@ function getArtworkOffset(project, size) {
 }
 
 function buildTextOverlaySvg(project, size) {
-  const text = clampText(project.icon.text || project.name);
-  const fontSize = text.length === 1 ? Math.round(size * 0.5) : Math.round(size * 0.34);
+  const text = String(project.icon.text ?? "");
+  const fontSize = text.length >= 3
+    ? Math.round(size * 0.27)
+    : text.length === 2
+      ? Math.round(size * 0.34)
+      : Math.round(size * 0.5);
 
   return Buffer.from(
     `

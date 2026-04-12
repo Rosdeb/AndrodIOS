@@ -189,6 +189,10 @@ p {
   gap: 14px;
 }
 
+.controls-panel {
+  height: 100%;
+}
+
 .preview-panel {
   padding: 18px;
 }
@@ -238,6 +242,96 @@ p {
   outline: none;
   border-color: var(--accent);
   box-shadow: 0 0 0 3px rgba(185, 141, 78, 0.15);
+}
+
+.field input[readonly] {
+  background: #f6f8fb;
+  color: var(--ink-muted);
+  cursor: default;
+}
+
+.icon-text-control {
+  display: flex;
+  align-items: stretch;
+  gap: 10px;
+}
+
+.field-toggle-button {
+  flex: 0 0 118px;
+  min-width: 118px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 6px 8px 6px 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(175, 188, 199, 0.9);
+  background: #f7f9fb;
+  color: var(--ink);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  cursor: pointer;
+  transition: background 180ms ease, border-color 180ms ease, box-shadow 180ms ease;
+}
+
+.field-toggle-button:hover {
+  border-color: rgba(148, 164, 176, 0.95);
+}
+
+.field-toggle-button.is-active {
+  background: #f2fbf1;
+  border-color: rgba(96, 174, 95, 0.55);
+}
+
+.field-toggle-label {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.field-toggle-switch {
+  position: relative;
+  width: 54px;
+  height: 34px;
+  flex-shrink: 0;
+  border-radius: 999px;
+  background: #b8c7d3;
+  transition: background 180ms ease;
+}
+
+.field-toggle-button.is-active .field-toggle-switch {
+  background: #50b24f;
+}
+
+.field-toggle-thumb {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: #ffffff;
+  box-shadow: 0 2px 8px rgba(26, 33, 48, 0.16);
+  transition: transform 180ms ease;
+}
+
+.field-toggle-button.is-active .field-toggle-thumb {
+  transform: translateX(20px);
+}
+
+.icon-text-control input {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+@media (max-width: 760px) {
+  .icon-text-control {
+    flex-direction: column;
+  }
+
+  .field-toggle-button {
+    width: 100%;
+    flex-basis: auto;
+  }
 }
 
 .field input[type="file"] {

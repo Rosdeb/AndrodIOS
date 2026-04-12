@@ -1,13 +1,15 @@
 const defaultAssetPath = "/website/assets/icons/app-builder-icon.png";
+const maxIconTextLength = 3;
 
 const state = {
   projectId: null,
   projectName: "Nebula Notes",
   iconText: "NN",
+  iconTextAuto: true,
   backgroundColor: "#ffffff",
   foregroundColor: "#1a2130",
   shape: "rounded-square",
-  zoom: 1.1,
+  zoom: 0.8,
   padding: 18,
   assetDataUrl: null,
   assetName: "",
@@ -21,6 +23,8 @@ const state = {
 const elements = {
   projectName: document.querySelector("#project-name"),
   iconText: document.querySelector("#icon-text"),
+  iconTextAutoToggle: document.querySelector("#icon-text-auto-toggle"),
+  iconTextHelp: document.querySelector("#icon-text-help"),
   bgColor: document.querySelector("#bg-color"),
   fgColor: document.querySelector("#fg-color"),
   shape: document.querySelector("#shape-select"),
@@ -81,8 +85,35 @@ function downloadBlob(blob, fileName) {
   }, 0);
 }
 
-function clampText(value) {
-  return value.trim().slice(0, 2).toUpperCase() || "IF";
+function deriveIconText(value) {
+  return String(value ?? "")
+    .trim()
+    .slice(0, maxIconTextLength)
+    .toUpperCase();
+}
+
+function sanitizeIconText(value) {
+  return String(value ?? "").slice(0, maxIconTextLength);
+}
+
+function resolveProjectName(value) {
+  return value.trim() || "Untitled App";
+}
+
+function getCurrentIconText() {
+  return state.iconTextAuto ? deriveIconText(state.projectName) : sanitizeIconText(state.iconText);
+}
+
+function getIconTextFontSize(text, mode) {
+  if (mode === "editor") {
+    if (text.length >= 3) return "clamp(3.3rem, 7vw, 4.8rem)";
+    if (text.length === 2) return "clamp(4.4rem, 9vw, 6rem)";
+    return "clamp(5rem, 10vw, 7rem)";
+  }
+
+  if (text.length >= 3) return "1.35rem";
+  if (text.length === 2) return "1.65rem";
+  return "1.8rem";
 }
 
 function applyShape(element, explicitShape) {
@@ -137,8 +168,10 @@ function updateIconStyles(element, textElement, defaultShape, mode = "editor") {
     ? `translate(-50%, -50%) scale(${state.zoom})`
     : "translate(-50%, -50%) scale(1)";
   imageElement.style.mixBlendMode = (state.blendWhiteBackground && hasAsset) ? "multiply" : "normal";
+  const iconText = getCurrentIconText();
   textElement.hidden = hasAsset;
-  textElement.textContent = clampText(state.iconText);
+  textElement.textContent = iconText;
+  textElement.style.fontSize = getIconTextFontSize(iconText, mode);
 }
 
 function updateColorChip(chipId, hexId, colorValue) {
@@ -165,7 +198,16 @@ function render() {
   if (zoomEl) zoomEl.textContent = `${zoomPct >= 0 ? '+' : ''}${zoomPct}% zoom`;
   if (paddingEl) paddingEl.textContent = `${state.padding}px`;
   elements.projectName.value = state.projectName;
-  elements.iconText.value = state.iconText;
+  elements.iconText.value = getCurrentIconText();
+  elements.iconText.readOnly = state.iconTextAuto;
+  elements.iconText.setAttribute("aria-readonly", state.iconText.readOnly ? "true" : "false");
+  elements.iconTextAutoToggle.setAttribute("aria-pressed", state.iconTextAuto ? "true" : "false");
+  elements.iconTextAutoToggle.classList.toggle("is-active", state.iconTextAuto);
+  if (elements.iconTextHelp) {
+    elements.iconTextHelp.textContent = state.iconTextAuto
+      ? "When Auto is true, icon text follows the project name."
+      : "Auto is false. Icon text is fully manual and can be empty.";
+  }
   elements.bgColor.value = state.backgroundColor;
   elements.fgColor.value = state.foregroundColor;
   elements.shape.value = state.shape;
@@ -182,8 +224,8 @@ function render() {
 }
 
 function syncStateFromInputs() {
-  state.projectName = elements.projectName.value.trim() || "Untitled App";
-  state.iconText = clampText(elements.iconText.value);
+  state.projectName = elements.projectName.value;
+  state.iconText = state.iconTextAuto ? deriveIconText(state.projectName) : sanitizeIconText(elements.iconText.value);
   state.backgroundColor = elements.bgColor.value;
   state.foregroundColor = elements.fgColor.value;
   state.shape = elements.shape.value;
@@ -237,16 +279,19 @@ function clearUploadedAsset() {
 
 async function saveProject() {
   syncStateFromInputs();
+  const resolvedProjectName = resolveProjectName(state.projectName);
+  const iconText = getCurrentIconText();
 
   const payload = {
-    name: state.projectName,
+    name: resolvedProjectName,
     platforms: ["android", "ios"],
     icon: {
       assetUrl: state.assetDataUrl,
       assetDataUrl: state.assetDataUrl,
       assetName: state.assetName,
       assetMimeType: state.assetMimeType,
-      text: state.iconText,
+      text: iconText,
+      autoText: state.iconTextAuto,
       backgroundColor: state.backgroundColor,
       foregroundColor: state.foregroundColor,
       gradient: null,
@@ -276,10 +321,12 @@ async function saveProject() {
 
   const data = await response.json();
   state.projectId = data.project.id;
+  state.projectName = data.project.name || resolvedProjectName;
   state.assetDataUrl = data.project.icon.assetDataUrl || null;
   state.assetName = data.project.icon.assetName || "";
   state.assetMimeType = data.project.icon.assetMimeType || "";
-  state.iconText = clampText(data.project.icon.text || state.iconText);
+  state.iconText = sanitizeIconText(data.project.icon.text ?? iconText);
+  state.iconTextAuto = data.project.icon.autoText ?? state.iconTextAuto;
   state.blendWhiteBackground = Boolean(data.project.icon.blendWhiteBackground);
   elements.apiStatus.textContent = `Project saved: ${data.project.name} (${data.project.id.slice(0, 8)})`;
   render();
@@ -303,9 +350,7 @@ async function refreshPreview() {
 }
 
 async function generateExportPlan() {
-  if (!state.projectId) {
-    await saveProject();
-  }
+  await saveProject();
 
   state.isExporting = true;
   elements.exportButtons.forEach((button) => {
@@ -336,7 +381,7 @@ async function generateExportPlan() {
 
   const fileName =
     extractFilename(response.headers.get("Content-Disposition")) ||
-    `${state.projectName.toLowerCase().replace(/\s+/g, "-")}-icons.zip`;
+    `${resolveProjectName(state.projectName).toLowerCase().replace(/\s+/g, "-")}-icons.zip`;
   const zipBlob = await response.blob();
 
   downloadBlob(zipBlob, fileName);
@@ -350,7 +395,7 @@ async function generateExportPlan() {
   setExportMessage(
     [
       "Export complete",
-      `Project: ${state.projectName}`,
+      `Project: ${resolveProjectName(state.projectName)}`,
       `File: ${fileName}`,
       "Platforms: Android + iOS",
       `Saved project: ${state.projectId}`,
@@ -361,16 +406,11 @@ async function generateExportPlan() {
 }
 
 function bindEvents() {
-  let iconTextPristine = true;
-
-  elements.iconText.addEventListener("input", () => {
-    iconTextPristine = false;
-  });
-
-  elements.projectName.addEventListener("input", (e) => {
-    if (iconTextPristine) {
-      elements.iconText.value = clampText(e.target.value);
-    }
+  elements.iconTextAutoToggle.addEventListener("click", () => {
+    syncStateFromInputs();
+    state.iconTextAuto = !state.iconTextAuto;
+    state.iconText = state.iconTextAuto ? deriveIconText(elements.projectName.value) : sanitizeIconText(elements.iconText.value);
+    render();
   });
 
   [
