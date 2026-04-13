@@ -10,116 +10,248 @@
       href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Outfit:wght@400;500;600;700&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="/admin/styles.css" />
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    />
+    <link rel="stylesheet" href="/admin/dashboard.css" />
   </head>
   <body class="theme-admin">
     <div class="admin-shell">
-      <aside class="admin-sidebar">
-        <div class="brand-lockup brand-lockup-admin">
-          <span class="brand-mark">IF</span>
+      <aside class="analytics-sidebar">
+        <div class="analytics-brand">
+          <span class="brand-mark">
+            <img
+              class="brand-mark-image"
+              src="/website/assets/icons/header-icon.png"
+              alt="AppIcon logo"
+            />
+          </span>
           <div>
-            <p class="eyebrow">Business Intelligence Layer</p>
-            <h1>IconForge Insights</h1>
+            <p class="eyebrow">Business Dashboard</p>
+            <h1>AppIcon</h1>
           </div>
         </div>
-        <nav class="admin-nav">
-          <a class="is-active" href="#overview">Overview</a>
-          <a href="#countries">Countries</a>
-          <a href="#funnel">Funnel</a>
-          <a href="#exports">Exports</a>
-          <a href="#activity">Activity</a>
-          <a href="/">Back to studio</a>
-        </nav>
+
+        <div class="sidebar-block">
+          <p class="sidebar-title">Overview</p>
+          <nav class="admin-nav">
+            <a class="is-active" href="#overview">
+              <span class="nav-icon nav-icon-overview"></span>
+              <span>Overview</span>
+            </a>
+          </nav>
+        </div>
+
+        <div class="sidebar-block">
+          <p class="sidebar-title">Analytics</p>
+          <nav class="admin-nav admin-nav-subtle">
+            <a href="#analytics-trend">
+              <span class="nav-icon nav-icon-chart"></span>
+              <span>Visitor</span>
+            </a>
+            <a href="#countries">
+              <span class="nav-icon nav-icon-bars"></span>
+              <span>Usage</span>
+            </a>
+            <a href="#realtime">
+              <span class="nav-icon nav-icon-pulse"></span>
+              <span>Real-Time</span>
+            </a>
+          </nav>
+        </div>
+
+        <div class="sidebar-block">
+          <p class="sidebar-title">App Profiles</p>
+          <nav class="admin-nav admin-nav-subtle">
+            <a href="#funnel">
+              <span class="nav-icon nav-icon-plus"></span>
+              <span>Create</span>
+            </a>
+            <a href="#funnel">
+              <span class="nav-icon nav-icon-wand"></span>
+              <span>Optimization</span>
+            </a>
+            <a href="#countries">
+              <span class="nav-icon nav-icon-layers"></span>
+              <span>Advanced Tools</span>
+            </a>
+            <a href="#overview">
+              <span class="nav-icon nav-icon-folder"></span>
+              <span>Manage</span>
+            </a>
+            <a href="#realtime">
+              <span class="nav-icon nav-icon-chat"></span>
+              <span>User Feedback</span>
+            </a>
+            <a href="#overview">
+              <span class="nav-icon nav-icon-doc"></span>
+              <span>Reports</span>
+            </a>
+          </nav>
+        </div>
+
+        <div class="sidebar-block active-profile-block">
+          <p class="sidebar-title">Active Profiles</p>
+          <div class="profile-list">
+            <div class="profile-item">
+              <span class="profile-avatar profile-avatar-weather">MW</span>
+              <div>
+                <strong>My Weather App</strong>
+                <p>Live activity</p>
+              </div>
+            </div>
+            <div class="profile-item">
+              <span class="profile-avatar profile-avatar-photo">PE</span>
+              <div>
+                <strong>Photo Editor</strong>
+                <p>Recent exports</p>
+              </div>
+            </div>
+          </div>
+        </div>
       </aside>
 
-      <main class="admin-main">
-        <header class="admin-topbar">
-          <div>
-            <p class="eyebrow">Admin Panel</p>
-            <h2>Simple to scan, advanced where it matters</h2>
+      <main class="analytics-main">
+        <header class="analytics-topbar">
+          <div class="topbar-copy">
+            <p class="eyebrow">Business Dashboard</p>
+            <h4>Simple to scan, advanced where it matters</h4>
           </div>
+
           <div class="admin-actions">
-            <input id="admin-key-input" type="password" value="dev-admin-key" />
-            <button class="button button-primary" id="load-dashboard-button">Load Dashboard</button>
+            <input
+              class="admin-key-field"
+              id="admin-key-input"
+              type="password"
+              value="dev-admin-key"
+              aria-label="Admin key"
+            />
+            <button
+              class="button button-secondary"
+              id="load-dashboard-button"
+              type="button"
+            >
+              Refresh Dashboard
+            </button>
+            <button
+              class="button button-primary"
+              id="export-report-button"
+              type="button"
+            >
+              Get Full Report
+            </button>
           </div>
         </header>
 
-        <section class="admin-grid" id="overview">
+        <section class="metric-strip" id="overview">
           <article class="metric-card">
             <span>Total Visitors</span>
             <strong id="metric-visitors">0</strong>
           </article>
           <article class="metric-card">
-            <span>Total Projects</span>
+            <span>Projects</span>
             <strong id="metric-projects">0</strong>
           </article>
           <article class="metric-card">
-            <span>Total Exports</span>
+            <span>Exports</span>
             <strong id="metric-exports">0</strong>
           </article>
-          <article class="metric-card">
-            <span>Live Users</span>
-            <strong id="metric-live-users">0</strong>
+          <article class="metric-card metric-card-live">
+            <div>
+              <span>Live Users</span>
+              <strong id="metric-live-users">0</strong>
+            </div>
+            <div class="live-user-stack" id="live-user-stack" aria-hidden="true">
+              <span class="live-user-pill live-user-pill-a">US</span>
+              <span class="live-user-pill live-user-pill-b">IN</span>
+              <span class="live-user-pill live-user-pill-c">BD</span>
+            </div>
           </article>
         </section>
 
-        <section class="dashboard-layout">
-          <article class="panel dashboard-panel">
+        <section class="dashboard-grid">
+          <article class="dashboard-panel panel-trend" id="analytics-trend">
             <div class="panel-heading">
-              <h3>Traffic + Export Trend</h3>
-              <p>Last 7 days based on backend analytics.</p>
-            </div>
-            <div class="trend-chart" id="trend-chart"></div>
-          </article>
-
-          <article class="panel dashboard-panel" id="countries">
-            <div class="panel-heading">
-              <h3>Top Countries</h3>
-              <p>Where your icon generator is being used most.</p>
-            </div>
-            <div class="country-list" id="country-list"></div>
-          </article>
-
-          <article class="panel dashboard-panel" id="funnel">
-            <div class="panel-heading">
-              <h3>Usage Funnel</h3>
-              <p>Track user movement from visit to export.</p>
-            </div>
-            <div class="funnel-list" id="funnel-list"></div>
-          </article>
-
-          <article class="panel dashboard-panel" id="exports">
-            <div class="panel-heading">
-              <h3>Platform Split</h3>
-              <p>Quick view of Android, iOS, and combined exports.</p>
-            </div>
-            <div class="split-cards">
-              <div class="split-card split-android">
-                <span>Android</span>
-                <strong id="platform-android">0</strong>
+              <div>
+                <h3>Project Activity Trends</h3>
+                <p>Tracks user movement from visit to export.</p>
               </div>
-              <div class="split-card split-ios">
-                <span>iOS</span>
-                <strong id="platform-ios">0</strong>
-              </div>
-              <div class="split-card split-both">
-                <span>Both</span>
-                <strong id="platform-both">0</strong>
+              <div class="chart-legend">
+                <span><i class="legend-dot legend-dot-visits"></i>Icon Visits</span>
+                <span><i class="legend-dot legend-dot-exports"></i>Successful Exports</span>
               </div>
             </div>
+            <div class="trend-chart trend-chart-shell" id="trend-chart"></div>
           </article>
 
-          <article class="panel dashboard-panel" id="activity">
-            <div class="panel-heading">
-              <h3>Recent Activity</h3>
-              <p>Fresh product events coming from the analytics feed.</p>
+          <article class="dashboard-panel panel-countries" id="countries">
+            <div class="panel-heading panel-heading-inline">
+              <div>
+                <h3>Top Countries</h3>
+                <p>Where your icon generator is used most.</p>
+              </div>
+              <button
+                class="button button-secondary button-small"
+                id="export-countries-button"
+                type="button"
+              >
+                Export Data
+              </button>
             </div>
-            <div class="activity-list" id="activity-list"></div>
+
+            <div class="country-table">
+              <div class="country-table-head">
+                <span>Country</span>
+                <span>Momentum</span>
+                <span>Visits</span>
+                <span>Conversion</span>
+              </div>
+              <div class="country-list" id="country-list"></div>
+            </div>
+          </article>
+
+          <article class="dashboard-panel panel-funnel" id="funnel">
+            <div class="panel-heading">
+              <div>
+                <h3>Usage Funnel</h3>
+                <p>Tracks user movement from visit to export.</p>
+              </div>
+            </div>
+            <div class="funnel-flow" id="funnel-flow"></div>
+            <div class="funnel-bars" id="funnel-list"></div>
+          </article>
+
+          <article class="dashboard-panel panel-realtime" id="realtime">
+            <div class="panel-heading">
+              <div>
+                <h3>Real-Time Performance</h3>
+                <p>Active users, map movement, and the latest sessions.</p>
+              </div>
+            </div>
+
+            <div class="realtime-map" id="realtime-map">
+              <div class="realtime-map-canvas" id="realtime-map-canvas"></div>
+            </div>
+
+            <div class="realtime-stats">
+              <div class="realtime-stat">
+                <span>Real-time Visitors</span>
+                <strong id="realtime-visitors">0</strong>
+              </div>
+              <div class="realtime-stat">
+                <span>Active Sessions</span>
+                <strong id="realtime-sessions">0</strong>
+              </div>
+            </div>
+
+            <div class="realtime-sparkline" id="realtime-sparkline"></div>
+            <div class="realtime-feed" id="realtime-activity-list"></div>
           </article>
         </section>
       </main>
     </div>
-
-    <script type="module" src="/admin/admin.js"></script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script type="module" src="/admin/dashboard.js"></script>
   </body>
 </html>

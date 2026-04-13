@@ -34,11 +34,18 @@ function getExports(_req, res) {
   res.json(analyticsService.getExportAnalytics());
 }
 
+function getRealtime(req, res) {
+  const windowMinutes = Number(req.query.windowMinutes || 30);
+
+  res.json(analyticsService.getRealtimeAnalytics(windowMinutes));
+}
+
 export const adminController = {
   getOverview,
   getCountries,
   getFunnel,
   getFeatureUsage,
   getActivity,
-  getExports
+  getExports,
+  getRealtime
 };

@@ -12,5 +12,6 @@ adminRouter.get("/funnel", adminController.getFunnel);
 adminRouter.get("/features", adminController.getFeatureUsage);
 adminRouter.get("/activity", adminController.getActivity);
 adminRouter.get("/exports", adminController.getExports);
+adminRouter.get("/realtime", adminController.getRealtime);
 
 export { adminRouter };

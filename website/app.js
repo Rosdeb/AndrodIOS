@@ -1,9 +1,28 @@
 const defaultAssetPath = "/website/assets/icons/app-builder-icon.png";
 const maxIconTextLength = 3;
+const maxUploadSizeBytes = 10 * 1024 * 1024;
+
+const regionDisplayNames = typeof Intl.DisplayNames === "function"
+  ? new Intl.DisplayNames(["en"], { type: "region" })
+  : null;
+const timezoneCountryFallbacks = {
+  "Asia/Dhaka": "Bangladesh",
+  "Asia/Kolkata": "India",
+  "Asia/Tokyo": "Japan",
+  "Europe/Berlin": "Germany",
+  "Europe/Paris": "France",
+  "Europe/London": "United Kingdom",
+  "America/New_York": "United States",
+  "America/Chicago": "United States",
+  "America/Denver": "United States",
+  "America/Los_Angeles": "United States",
+  "America/Sao_Paulo": "Brazil"
+};
 
 const state = {
   projectId: null,
-  projectName: "Nebula Notes",
+  sessionId: "",
+  projectName: "AppIcon",
   iconText: "NN",
   iconTextAuto: true,
   backgroundColor: "#ffffff",
@@ -147,6 +166,126 @@ function resolveProjectName(value) {
   return value.trim() || "Untitled App";
 }
 
+function createSessionId() {
+  if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
+    return crypto.randomUUID();
+  }
+
+  return `session-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+}
+
+function ensureSessionId() {
+  if (state.sessionId) {
+    return state.sessionId;
+  }
+
+  const existing = window.localStorage?.getItem("iconforge-session-id");
+  state.sessionId = existing || createSessionId();
+
+  try {
+    window.localStorage?.setItem("iconforge-session-id", state.sessionId);
+  } catch {
+    // Ignore storage failures and keep the in-memory session.
+  }
+
+  return state.sessionId;
+}
+
+function getLocaleCountry() {
+  const locales = navigator.languages?.length ? navigator.languages : [navigator.language];
+
+  for (const locale of locales) {
+    const match = String(locale || "").match(/[-_]([A-Za-z]{2})$/);
+
+    if (!match) {
+      continue;
+    }
+
+    const regionCode = match[1].toUpperCase();
+    const regionName = regionDisplayNames?.of(regionCode);
+
+    if (regionName) {
+      return regionName;
+    }
+  }
+
+  return null;
+}
+
+function getTimezoneCountry() {
+  const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+  return timezoneCountryFallbacks[timezone] || null;
+}
+
+function getClientCountry() {
+  return getLocaleCountry() || getTimezoneCountry() || "Unknown";
+}
+
+function getClientPlatform() {
+  const userAgent = navigator.userAgent || "";
+
+  if (/iphone|ipad|ipod/i.test(userAgent)) {
+    return "ios";
+  }
+
+  if (/android/i.test(userAgent)) {
+    return "android";
+  }
+
+  return "web";
+}
+
+function getClientDeviceType() {
+  return /android|iphone|ipad|mobile/i.test(navigator.userAgent || "") ? "mobile" : "desktop";
+}
+
+function getAnalyticsContext(extraMetadata = {}) {
+  return {
+    sessionId: ensureSessionId(),
+    country: getClientCountry(),
+    platform: getClientPlatform(),
+    deviceType: getClientDeviceType(),
+    metadata: {
+      page: window.location.pathname,
+      ...extraMetadata
+    }
+  };
+}
+
+function getTrackingHeaders() {
+  const analytics = getAnalyticsContext();
+
+  return {
+    "x-session-id": analytics.sessionId,
+    "x-country": analytics.country,
+    "x-platform": analytics.platform,
+    "x-device-type": analytics.deviceType
+  };
+}
+
+async function trackClientEvent(type, metadata = {}) {
+  try {
+    const analytics = getAnalyticsContext(metadata);
+
+    await fetch("/api/public/events", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        type,
+        country: analytics.country,
+        platform: analytics.platform,
+        deviceType: analytics.deviceType,
+        sessionId: analytics.sessionId,
+        metadata: analytics.metadata
+      })
+    });
+  } catch {
+    // Analytics should not block the studio.
+  }
+}
+
 function clampNumber(value, min, max) {
   return Math.min(Math.max(value, min), max);
 }
@@ -262,6 +401,10 @@ function updateIosPreviewTheme() {
 }
 
 function updateIconStyles(element, textElement, defaultShape, mode = "editor") {
+  if (!element || !textElement) {
+    return;
+  }
+
   applyShape(element, defaultShape);
   element.style.background = state.backgroundColor;
   element.style.color = state.foregroundColor;
@@ -380,19 +523,32 @@ function readFileAsDataUrl(file) {
   });
 }
 
-async function handleAssetUpload(event) {
-  const [file] = event.target.files || [];
+function isSupportedImageFile(file) {
+  if (!file) {
+    return false;
+  }
 
+  if (/^image\/(png|jpeg|svg\+xml|webp)$/i.test(file.type || "")) {
+    return true;
+  }
+
+  return /\.(png|jpe?g|svg|webp)$/i.test(file.name || "");
+}
+
+async function loadUploadedAsset(file) {
   if (!file) {
     return;
   }
 
-  if (file.size > 4 * 1024 * 1024) {
-    throw new Error("Please choose an asset smaller than 4MB.");
+  elements.uploadMeta.textContent = `Selected: ${file.name}`;
+  elements.uploadMeta.title = `Selected: ${file.name}`;
+
+  if (file.size > maxUploadSizeBytes) {
+    throw new Error("Please choose an asset smaller than 10MB.");
   }
 
-  if (!/^image\/(png|jpeg|svg\+xml)$/.test(file.type)) {
-    throw new Error("Only PNG, JPG, and SVG files are supported right now.");
+  if (!isSupportedImageFile(file)) {
+    throw new Error("Only PNG, JPG, SVG, and WEBP files are supported right now.");
   }
 
   const dataUrl = await readFileAsDataUrl(file);
@@ -401,6 +557,11 @@ async function handleAssetUpload(event) {
   state.assetMimeType = file.type;
   elements.apiStatus.textContent = `Asset loaded: ${file.name}`;
   render();
+}
+
+async function handleAssetUpload(event) {
+  const [file] = event.target.files || [];
+  await loadUploadedAsset(file);
 }
 
 function clearUploadedAsset() {
@@ -416,10 +577,19 @@ async function saveProject() {
   syncStateFromInputs();
   const resolvedProjectName = resolveProjectName(state.projectName);
   const iconText = getCurrentIconText();
+  const analytics = getAnalyticsContext({
+    projectName: resolvedProjectName,
+    sourceAsset: state.assetName || null
+  });
 
   const payload = {
     name: resolvedProjectName,
     platforms: ["android", "ios"],
+    analytics,
+    country: analytics.country,
+    platform: analytics.platform,
+    deviceType: analytics.deviceType,
+    sessionId: analytics.sessionId,
     icon: {
       assetUrl: state.assetDataUrl,
       assetDataUrl: state.assetDataUrl,
@@ -445,7 +615,8 @@ async function saveProject() {
   const response = await fetch(endpoint, {
     method,
     headers: {
-      "Content-Type": "application/json"
+      "Content-Type": "application/json",
+      ...getTrackingHeaders()
     },
     body: JSON.stringify(payload)
   });
@@ -473,7 +644,9 @@ async function refreshPreview() {
     return;
   }
 
-  const response = await fetch(`/api/public/projects/${state.projectId}/preview`);
+  const response = await fetch(`/api/public/projects/${state.projectId}/preview?mode=device`, {
+    headers: getTrackingHeaders()
+  });
 
   if (!response.ok) {
     throw new Error("Unable to load preview");
@@ -497,12 +670,19 @@ async function generateExportPlan() {
   const response = await fetch(`/api/public/projects/${state.projectId}/export`, {
     method: "POST",
     headers: {
-      "Content-Type": "application/json"
+      "Content-Type": "application/json",
+      ...getTrackingHeaders()
     },
     body: JSON.stringify({
       platforms: ["android", "ios"],
-      country: "Bangladesh",
-      deviceType: "desktop"
+      ...getAnalyticsContext({
+        projectId: state.projectId,
+        projectName: resolveProjectName(state.projectName)
+      }),
+      analytics: getAnalyticsContext({
+        projectId: state.projectId,
+        projectName: resolveProjectName(state.projectName)
+      })
     })
   });
 
@@ -557,8 +737,14 @@ function bindEvents() {
       await handleAssetUpload(event);
     } catch (error) {
       elements.assetUpload.value = "";
+      elements.uploadMeta.textContent = "No asset selected";
+      elements.uploadMeta.title = "No asset selected";
       elements.apiStatus.textContent = error.message;
     }
+  });
+
+  elements.assetUpload.addEventListener("click", () => {
+    elements.assetUpload.value = "";
   });
 
   const dropzoneArea = document.querySelector("#dropzone-area");
@@ -574,11 +760,17 @@ function bindEvents() {
     dropzoneArea.addEventListener('drop', (e) => {
       e.preventDefault();
       dropzoneArea.classList.remove('drag-active');
-      const files = e.dataTransfer.files;
-      if (files.length) {
-        elements.assetUpload.files = files;
-        elements.assetUpload.dispatchEvent(new Event('change'));
+      const [file] = e.dataTransfer.files || [];
+
+      if (!file) {
+        return;
       }
+
+      loadUploadedAsset(file).catch((error) => {
+        elements.uploadMeta.textContent = "No asset selected";
+        elements.uploadMeta.title = "No asset selected";
+        elements.apiStatus.textContent = error.message;
+      });
     });
   }
 
@@ -618,3 +810,7 @@ function bindEvents() {
 
 render();
 bindEvents();
+trackClientEvent("page_view", {
+  page: window.location.pathname,
+  referrer: document.referrer || null
+});

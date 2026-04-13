@@ -398,7 +398,7 @@ async function buildZipBuffer(exportRoot, packageRootName) {
 function createExport(projectId, payload = {}) {
   const project = projectService.getProject(projectId);
   const platforms = payload.platforms || project.platforms || ["android", "ios"];
-  const country = payload.country || "Unknown";
+  const country = payload.country || payload.analytics?.country || "Unknown";
   const exportId = randomUUID();
   const packageName = "Appicon.zip";
 
@@ -434,10 +434,14 @@ function createExport(projectId, payload = {}) {
     country,
     platform:
       platforms.length === 2 ? "android-ios" : platforms[0],
-    deviceType: payload.deviceType || "desktop",
+    deviceType: payload.deviceType || payload.analytics?.deviceType || "desktop",
     metadata: {
       exportId,
-      exportTarget: platforms.length === 2 ? "both" : platforms[0]
+      projectId,
+      exportTarget: platforms.length === 2 ? "both" : platforms[0],
+      ...((payload.sessionId || payload.analytics?.sessionId)
+        ? { sessionId: payload.sessionId || payload.analytics?.sessionId }
+        : {})
     }
   });
 
