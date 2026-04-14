@@ -23,8 +23,8 @@ const state = {
   projectId: null,
   sessionId: "",
   projectName: "AppIcon",
-  iconText: "NN",
-  iconTextAuto: true,
+  exportFileName: "appicon",
+  selectedPlatforms: ["android", "ios"],
   backgroundColor: "#ffffff",
   foregroundColor: "#1a2130",
   shape: "rounded-square",
@@ -39,13 +39,16 @@ const state = {
   isExporting: false
 };
 
+const EXPORT_COUNTS = {
+  android: 6,
+  ios: 37
+};
+
 const elements = {
   projectName: document.querySelector("#project-name"),
-  iconText: document.querySelector("#icon-text"),
-  iconTextAutoToggle: document.querySelector("#icon-text-auto-toggle"),
-  iconTextHelp: document.querySelector("#icon-text-help"),
   bgColor: document.querySelector("#bg-color"),
   fgColor: document.querySelector("#fg-color"),
+  exportFileName: document.querySelector("#android-filename"),
   shape: document.querySelector("#shape-select"),
   zoom: document.querySelector("#zoom-range"),
   zoomOutput: document.querySelector("#zoom-output"),
@@ -82,7 +85,9 @@ const elements = {
   exportOutput: document.querySelector("#export-output"),
   saveProjectButton: document.querySelector("#save-project-button"),
   loadPreviewButton: document.querySelector("#load-preview-button"),
-  exportButtons: [...document.querySelectorAll("[data-export-trigger]")]
+  exportButtons: [...document.querySelectorAll("[data-export-trigger]")],
+  exportPlatformInputs: [...document.querySelectorAll("[data-export-platform]")],
+  packStatCards: [...document.querySelectorAll("[data-pack-card]")]
 };
 
 function setExportMessage(message) {
@@ -101,14 +106,23 @@ function describeShape(shape) {
   return "Rounded Square";
 }
 
-function buildExportSummary(fileName) {
+function buildExportSummary(fileName, platforms) {
+  const selectedPlatforms = [...platforms];
+  const includesAndroid = selectedPlatforms.includes("android");
+  const includesIos = selectedPlatforms.includes("ios");
+  const platformLabel = includesAndroid && includesIos
+    ? "Android + iOS"
+    : includesIos
+      ? "iOS only"
+      : "Android only";
+
   return [
     "Export package generated",
     `Project: ${resolveProjectName(state.projectName)}`,
     `File: ${fileName}`,
-    "Platforms: Android + iOS",
-    "Android outputs: 6 files",
-    "iOS outputs: 22 icons + Contents.json",
+    `Platforms: ${platformLabel}`,
+    `Android outputs: ${includesAndroid ? `${EXPORT_COUNTS.android} files` : "Not included"}`,
+    `iOS outputs: ${includesIos ? `${EXPORT_COUNTS.ios} files` : "Not included"}`,
     `Icon label: ${getCurrentIconText() || "Image asset"}`,
     `Shape: ${describeShape(state.shape)}`,
     `Background: ${state.backgroundColor.toUpperCase()}`,
@@ -158,12 +172,19 @@ function deriveIconText(value) {
     .toUpperCase();
 }
 
-function sanitizeIconText(value) {
-  return String(value ?? "").slice(0, maxIconTextLength);
-}
-
 function resolveProjectName(value) {
   return value.trim() || "Untitled App";
+}
+
+function resolveExportFileName(value) {
+  const normalized = String(value ?? "")
+    .trim()
+    .toLowerCase()
+    .replace(/\.zip$/i, "")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+
+  return normalized || "appicon";
 }
 
 function createSessionId() {
@@ -252,6 +273,51 @@ function getAnalyticsContext(extraMetadata = {}) {
   };
 }
 
+function getSelectedPlatforms() {
+  return [...state.selectedPlatforms];
+}
+
+function hasSelectedPlatform() {
+  return state.selectedPlatforms.length > 0;
+}
+
+function syncPlatformSelectionFromInputs() {
+  const selected = [];
+  const seen = new Set();
+
+  elements.exportPlatformInputs.forEach((input) => {
+    if (seen.has(input.dataset.exportPlatform)) {
+      return;
+    }
+
+    seen.add(input.dataset.exportPlatform);
+
+    if (input.checked) {
+      selected.push(input.dataset.exportPlatform);
+    }
+  });
+
+  state.selectedPlatforms = selected;
+}
+
+function renderPlatformSelection() {
+  const selected = new Set(state.selectedPlatforms);
+
+  elements.exportPlatformInputs.forEach((input) => {
+    input.checked = selected.has(input.dataset.exportPlatform);
+  });
+
+  elements.packStatCards.forEach((card) => {
+    const isActive = selected.has(card.dataset.packCard);
+    card.classList.toggle("is-active", isActive);
+    card.classList.toggle("is-inactive", !isActive);
+  });
+
+  elements.exportButtons.forEach((button) => {
+    button.disabled = state.isExporting || !hasSelectedPlatform();
+  });
+}
+
 function getTrackingHeaders() {
   const analytics = getAnalyticsContext();
 
@@ -327,7 +393,7 @@ function getIosPreviewLabel(name) {
 }
 
 function getCurrentIconText() {
-  return state.iconTextAuto ? deriveIconText(state.projectName) : sanitizeIconText(state.iconText);
+  return deriveIconText(state.projectName);
 }
 
 function getIconTextFontSize(text, mode) {
@@ -463,15 +529,8 @@ function render() {
   if (zoomEl) zoomEl.textContent = `${zoomPct >= 0 ? '+' : ''}${zoomPct}% zoom`;
   if (paddingEl) paddingEl.textContent = `${state.padding}px`;
   elements.projectName.value = state.projectName;
-  elements.iconText.value = getCurrentIconText();
-  elements.iconText.readOnly = state.iconTextAuto;
-  elements.iconText.setAttribute("aria-readonly", state.iconText.readOnly ? "true" : "false");
-  elements.iconTextAutoToggle.setAttribute("aria-pressed", state.iconTextAuto ? "true" : "false");
-  elements.iconTextAutoToggle.classList.toggle("is-active", state.iconTextAuto);
-  if (elements.iconTextHelp) {
-    elements.iconTextHelp.textContent = state.iconTextAuto
-      ? "When Auto is true, icon text follows the project name."
-      : "Auto is false. Icon text is fully manual and can be empty.";
+  if (elements.exportFileName) {
+    elements.exportFileName.value = state.exportFileName;
   }
   elements.bgColor.value = state.backgroundColor;
   elements.fgColor.value = state.foregroundColor;
@@ -482,6 +541,7 @@ function render() {
   elements.clearUploadButton.hidden = !state.assetDataUrl;
   updateColorChip('bg-chip', 'bg-hex', state.backgroundColor);
   updateColorChip('fg-chip', 'fg-hex', state.foregroundColor);
+  renderPlatformSelection();
   updateIconStyles(elements.editorIcon, elements.editorIconText, state.shape || "rounded-square", "editor");
   updateIconStyles(elements.showcaseStoreIcon, elements.showcaseStoreText, state.shape || "rounded-square", "preview");
   updateIconStyles(elements.showcasePhoneIcon, elements.showcasePhoneText, state.shape || "rounded-square", "preview");
@@ -503,7 +563,7 @@ function render() {
 
 function syncStateFromInputs() {
   state.projectName = elements.projectName.value;
-  state.iconText = state.iconTextAuto ? deriveIconText(state.projectName) : sanitizeIconText(elements.iconText.value);
+  state.exportFileName = resolveExportFileName(elements.exportFileName?.value || state.projectName);
   state.backgroundColor = elements.bgColor.value;
   state.foregroundColor = elements.fgColor.value;
   state.shape = elements.shape.value;
@@ -584,7 +644,7 @@ async function saveProject() {
 
   const payload = {
     name: resolvedProjectName,
-    platforms: ["android", "ios"],
+    platforms: getSelectedPlatforms(),
     analytics,
     country: analytics.country,
     platform: analytics.platform,
@@ -595,8 +655,9 @@ async function saveProject() {
       assetDataUrl: state.assetDataUrl,
       assetName: state.assetName,
       assetMimeType: state.assetMimeType,
+      exportFileName: state.exportFileName,
       text: iconText,
-      autoText: state.iconTextAuto,
+      autoText: true,
       backgroundColor: state.backgroundColor,
       foregroundColor: state.foregroundColor,
       gradient: null,
@@ -631,8 +692,7 @@ async function saveProject() {
   state.assetDataUrl = data.project.icon.assetDataUrl || null;
   state.assetName = data.project.icon.assetName || "";
   state.assetMimeType = data.project.icon.assetMimeType || "";
-  state.iconText = sanitizeIconText(data.project.icon.text ?? iconText);
-  state.iconTextAuto = data.project.icon.autoText ?? state.iconTextAuto;
+  state.exportFileName = resolveExportFileName(data.project.icon.exportFileName || state.exportFileName || resolvedProjectName);
   state.blendWhiteBackground = Boolean(data.project.icon.blendWhiteBackground);
   elements.apiStatus.textContent = `Project saved: ${data.project.name} (${data.project.id.slice(0, 8)})`;
   render();
@@ -658,14 +718,19 @@ async function refreshPreview() {
 }
 
 async function generateExportPlan() {
+  if (!hasSelectedPlatform()) {
+    elements.apiStatus.textContent = "Select at least one platform before generating the export.";
+    return;
+  }
+
   await saveProject();
+  const selectedPlatforms = getSelectedPlatforms();
 
   state.isExporting = true;
-  elements.exportButtons.forEach((button) => {
-    button.disabled = true;
-  });
-  setExportMessage("Preparing your export package. The zip download will start automatically.");
-  elements.apiStatus.textContent = "Building Android and iOS export zip...";
+  renderPlatformSelection();
+  const platformLabel = selectedPlatforms.length === 2 ? "Android and iOS" : selectedPlatforms[0] === "ios" ? "iOS" : "Android";
+  setExportMessage(`Preparing your ${platformLabel} export package. The download will start automatically.`);
+  elements.apiStatus.textContent = `Building ${platformLabel} export zip...`;
 
   const response = await fetch(`/api/public/projects/${state.projectId}/export`, {
     method: "POST",
@@ -674,7 +739,8 @@ async function generateExportPlan() {
       ...getTrackingHeaders()
     },
     body: JSON.stringify({
-      platforms: ["android", "ios"],
+      platforms: selectedPlatforms,
+      exportFileName: state.exportFileName,
       ...getAnalyticsContext({
         projectId: state.projectId,
         projectName: resolveProjectName(state.projectName)
@@ -688,15 +754,13 @@ async function generateExportPlan() {
 
   if (!response.ok) {
     state.isExporting = false;
-    elements.exportButtons.forEach((button) => {
-      button.disabled = false;
-    });
+    renderPlatformSelection();
     throw new Error("Unable to generate export zip");
   }
 
   const fileName =
     extractFilename(response.headers.get("Content-Disposition")) ||
-    "Appicon.zip";
+    `${state.exportFileName}.zip`;
   const zipBlob = await response.blob();
 
   downloadBlob(zipBlob, fileName);
@@ -704,24 +768,15 @@ async function generateExportPlan() {
   state.lastExportFileName = fileName;
   state.lastExportAt = new Date().toLocaleString();
   state.isExporting = false;
-  elements.exportButtons.forEach((button) => {
-    button.disabled = false;
-  });
-  setExportMessage(buildExportSummary(fileName));
+  renderPlatformSelection();
+  setExportMessage(buildExportSummary(fileName, selectedPlatforms));
   elements.apiStatus.textContent = `Export ready: ${fileName}`;
 }
 
 function bindEvents() {
-  elements.iconTextAutoToggle.addEventListener("click", () => {
-    syncStateFromInputs();
-    state.iconTextAuto = !state.iconTextAuto;
-    state.iconText = state.iconTextAuto ? deriveIconText(elements.projectName.value) : sanitizeIconText(elements.iconText.value);
-    render();
-  });
-
   [
     elements.projectName,
-    elements.iconText,
+    elements.exportFileName,
     elements.bgColor,
     elements.fgColor,
     elements.shape,
@@ -776,6 +831,17 @@ function bindEvents() {
 
   elements.clearUploadButton.addEventListener("click", clearUploadedAsset);
 
+  elements.exportPlatformInputs.forEach((input) => {
+    input.addEventListener("change", () => {
+      syncPlatformSelectionFromInputs();
+      renderPlatformSelection();
+
+      if (!hasSelectedPlatform()) {
+        elements.apiStatus.textContent = "Select Android, iOS, or both to generate an export.";
+      }
+    });
+  });
+
   elements.saveProjectButton.addEventListener("click", async () => {
     try {
       await saveProject();
@@ -798,9 +864,7 @@ function bindEvents() {
         await generateExportPlan();
       } catch (error) {
         state.isExporting = false;
-        elements.exportButtons.forEach((item) => {
-          item.disabled = false;
-        });
+        renderPlatformSelection();
         setExportMessage(error.message);
         elements.apiStatus.textContent = error.message;
       }

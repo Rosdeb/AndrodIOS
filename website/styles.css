@@ -258,96 +258,6 @@ p {
   box-shadow: 0 0 0 3px rgba(185, 141, 78, 0.15);
 }
 
-.field input[readonly] {
-  background: #f6f8fb;
-  color: var(--ink-muted);
-  cursor: default;
-}
-
-.icon-text-control {
-  display: flex;
-  align-items: stretch;
-  gap: 8px;
-}
-
-.field-toggle-button {
-  flex: 0 0 78px;
-  min-width: 78px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 6px;
-  padding: 4px 6px 4px 10px;
-  border-radius: 999px;
-  border: 1px solid rgba(112, 190, 111, 0.55);
-  background: #ebf9eb;
-  color: var(--ink);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9);
-  cursor: pointer;
-  transition: background 180ms ease, border-color 180ms ease, box-shadow 180ms ease;
-}
-
-.field-toggle-button:hover {
-  border-color: rgba(148, 164, 176, 0.95);
-}
-
-.field-toggle-button.is-active {
-  background: #f2fbf1;
-  border-color: rgba(96, 174, 95, 0.55);
-}
-
-.field-toggle-label {
-  font-size: 0.72rem;
-  font-weight: 700;
-  color: var(--ink);
-}
-
-.field-toggle-switch {
-  position: relative;
-  width: 34px;
-  height: 22px;
-  flex-shrink: 0;
-  border-radius: 999px;
-  background: #b8c7d3;
-  transition: background 180ms ease;
-}
-
-.field-toggle-button.is-active .field-toggle-switch {
-  background: #50b24f;
-}
-
-.field-toggle-thumb {
-  position: absolute;
-  top: 2px;
-  left: 2px;
-  width: 18px;
-  height: 18px;
-  border-radius: 50%;
-  background: #ffffff;
-  box-shadow: 0 2px 8px rgba(26, 33, 48, 0.16);
-  transition: transform 180ms ease;
-}
-
-.field-toggle-button.is-active .field-toggle-thumb {
-  transform: translateX(12px);
-}
-
-.icon-text-control input {
-  flex: 1 1 auto;
-  min-width: 0;
-}
-
-@media (max-width: 760px) {
-  .icon-text-control {
-    flex-direction: column;
-  }
-
-  .field-toggle-button {
-    width: 100%;
-    flex-basis: auto;
-  }
-}
-
 .field input[type="file"] {
   padding: 10px;
 }
@@ -631,6 +541,90 @@ input[type="range"],
   display: flex;
   gap: 8px;
   flex-wrap: wrap;
+}
+
+.pack-stat-card {
+  position: relative;
+  transition: border-color 180ms ease, box-shadow 180ms ease, opacity 180ms ease, transform 180ms ease;
+}
+
+.pack-stat-card.is-active {
+  border-color: rgba(185, 141, 78, 0.36);
+  box-shadow: 0 10px 18px rgba(185, 141, 78, 0.12);
+}
+
+.pack-stat-card.is-inactive {
+  opacity: 0.58;
+}
+
+.export-platform-selector {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 8px;
+}
+
+.export-platform-selector-inline {
+  margin-top: 0;
+}
+
+.export-platform-option {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  border-radius: 14px;
+  border: 1px solid var(--stroke-strong);
+  background: #ffffff;
+  color: var(--ink);
+  cursor: pointer;
+  user-select: none;
+  transition: border-color 180ms ease, box-shadow 180ms ease, background 180ms ease;
+}
+
+.export-platform-option:hover {
+  border-color: rgba(185, 141, 78, 0.34);
+}
+
+.export-platform-option input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.export-platform-check {
+  position: relative;
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+  border-radius: 6px;
+  border: 1.5px solid #b7c3d3;
+  background: #ffffff;
+  transition: background 180ms ease, border-color 180ms ease, box-shadow 180ms ease;
+}
+
+.export-platform-check::after {
+  content: "";
+  position: absolute;
+  left: 5px;
+  top: 1px;
+  width: 5px;
+  height: 10px;
+  border-right: 2px solid #ffffff;
+  border-bottom: 2px solid #ffffff;
+  transform: rotate(45deg) scale(0);
+  transform-origin: center;
+  transition: transform 180ms ease;
+}
+
+.export-platform-option input:checked + .export-platform-check {
+  background: #1d2638;
+  border-color: #1d2638;
+  box-shadow: 0 8px 16px rgba(29, 38, 56, 0.12);
+}
+
+.export-platform-option input:checked + .export-platform-check::after {
+  transform: rotate(45deg) scale(1);
 }
 
 .action-stack .button {
@@ -1442,6 +1436,13 @@ input[type="range"],
 }
 
 @media (max-width: 760px) {
+  .export-platform-selector {
+    flex-direction: column;
+  }
+
+  .export-platform-option {
+    width: 100%;
+  }
 
   .workspace-header,
   .topbar-links,

@@ -88,20 +88,6 @@
                 <input id="project-name" type="text" value="AppIcon" />
               </label>
 
-              <label class="field">
-                <span>Icon Text</span>
-                <div class="icon-text-control">
-                  <button id="icon-text-auto-toggle" class="field-toggle-button" type="button" aria-pressed="true" aria-label="Auto icon text toggle">
-                    <span class="field-toggle-label">Auto</span>
-                    <span class="field-toggle-switch" aria-hidden="true">
-                      <span class="field-toggle-thumb"></span>
-                    </span>
-                  </button>
-                  <input id="icon-text" type="text" value="NN" maxlength="3" />
-                </div>
-                <small id="icon-text-help">When Auto is true, icon text follows the project name. Turn it off for full manual control up to 3 characters.</small>
-              </label>
-
               <div class="color-field-group">
                 <div class="color-field">
                   <span class="color-field-label">Background Color:</span>
@@ -161,8 +147,8 @@
               </div>
 
               <label class="field">
-                <span>Android File Name:</span>
-                <input id="android-filename" type="text" value="" placeholder="ic_launcher" class="clean-input" />
+                <span>Export File Name:</span>
+                <input id="android-filename" type="text" value="appicon" placeholder="appicon" class="clean-input" />
               </label>
 
 
@@ -172,11 +158,11 @@
                 <button class="button button-secondary" id="load-preview-button">Refresh Preview</button>
               </div>
 
-              <div style="margin-top: 8px;">
+              <!-- <div style="margin-top: 8px;">
                 <button class="button button-primary button-gold" data-export-trigger="primary" type="button" style="width:100%;">
                   Generate Export Plan
                 </button>
-              </div>
+              </div> -->
             </aside>
 
             <section class="canvas-panel">
@@ -284,19 +270,40 @@
               </div>
 
               <div class="preview-stats">
-                <div>
+                <div class="pack-stat-card" data-pack-card="ios">
                   <span>iOS Pack</span>
-                  <strong>22 files</strong>
+                  <strong>37 files</strong>
                 </div>
-                <div>
+                <div class="pack-stat-card" data-pack-card="android">
                   <span>Android Pack</span>
                   <strong>6 sizes</strong>
                 </div>
               </div>
 
+              <div class="export-platform-selector">
+                <label class="export-platform-option">
+                  <input type="checkbox" data-export-platform="ios" checked />
+                  <span class="export-platform-check"></span>
+                  <span>iOS</span>
+                </label>
+                <label class="export-platform-option">
+                  <input type="checkbox" data-export-platform="android" checked />
+                  <span class="export-platform-check"></span>
+                  <span>Android</span>
+                </label>
+              </div>
+
               <div class="api-status" id="api-status">
                 Backend status: ready to save project
               </div>
+
+
+              <div style="margin-top: 8px;">
+                <button class="button button-primary button-gold" data-export-trigger="primary" type="button" style="width:100%;">
+                  Generate Export Plan
+                </button>
+              </div>
+
               </aside>
             </aside>
           </div>
@@ -315,6 +322,18 @@
                   <h3>Generated size matrix</h3>
                   <p>Android and iOS required outputs.</p>
                 </div>
+                <div class="export-platform-selector export-platform-selector-inline">
+                  <label class="export-platform-option">
+                    <input type="checkbox" data-export-platform="ios" checked />
+                    <span class="export-platform-check"></span>
+                    <span>iOS</span>
+                  </label>
+                  <label class="export-platform-option">
+                    <input type="checkbox" data-export-platform="android" checked />
+                    <span class="export-platform-check"></span>
+                    <span>Android</span>
+                  </label>
+                </div>
                 <button class="button button-primary button-gold" id="generate-export-button" data-export-trigger="secondary">Generate Export Plan</button>
               </div>
               <div class="manifest-columns">
@@ -332,10 +351,11 @@
                 <div>
                   <h4>iOS</h4>
                   <ul class="size-list">
-                    <li><span>iPhone</span><strong>10 files</strong></li>
-                    <li><span>iPad</span><strong>11 files</strong></li>
+                    <li><span>AppIcon Set</span><strong>21 files</strong></li>
                     <li><span>App Store</span><strong>1 file</strong></li>
-                    <li><span>Total Apple Pack</span><strong>22 files</strong></li>
+                    <li><span>Legacy Support</span><strong>14 files</strong></li>
+                    <li><span>Contents Manifest</span><strong>1 file</strong></li>
+                    <li><span>Total Apple Pack</span><strong>37 files</strong></li>
                   </ul>
                 </div>
               </div>
