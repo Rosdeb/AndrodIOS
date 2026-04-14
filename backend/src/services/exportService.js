@@ -113,6 +113,17 @@ function getArtworkScale(project) {
   return clamp((Math.max(76, basePercent) / 100) * zoom, 0.28, 1.6);
 }
 
+function getContainedArtworkScale(project, scaleMultiplier = 1) {
+  const padding = Number(project.icon.padding ?? 18);
+  const zoom = Number(project.icon.zoom ?? 1);
+  const baseScale = getArtworkScale(project) * scaleMultiplier;
+  const paddingBias = clamp((padding - 18) * 0.004, -0.04, 0.06);
+  const zoomBias = clamp((zoom - 1) * 0.18, -0.08, 0.1);
+  const safeScale = clamp(0.62 + paddingBias + zoomBias, 0.5, 0.76);
+
+  return Math.min(baseScale, safeScale);
+}
+
 function getArtworkOffset(project, size) {
   const x = Number(project.icon.positionX ?? 0);
   const y = Number(project.icon.positionY ?? 0);
@@ -155,7 +166,7 @@ async function buildArtworkLayer(project, sourceAsset, size, scaleMultiplier = 1
     return buildTextOverlaySvg(project, size, scaleMultiplier);
   }
 
-  const artworkScale = getArtworkScale(project) * scaleMultiplier;
+  const artworkScale = getContainedArtworkScale(project, scaleMultiplier);
   const scaledSize = Math.max(1, Math.round(size * artworkScale));
   const { x, y } = getArtworkOffset(project, size);
   const transparent = { r: 0, g: 0, b: 0, alpha: 0 };
@@ -170,22 +181,6 @@ async function buildArtworkLayer(project, sourceAsset, size, scaleMultiplier = 1
     })
     .png()
     .toBuffer();
-
-  if (scaledSize >= size) {
-    const maxInset = scaledSize - size;
-    const left = clamp(Math.round((scaledSize - size) / 2 - x), 0, maxInset);
-    const top = clamp(Math.round((scaledSize - size) / 2 - y), 0, maxInset);
-
-    return sharp(scaledBuffer)
-      .extract({
-        left,
-        top,
-        width: size,
-        height: size
-      })
-      .png()
-      .toBuffer();
-  }
 
   const left = clamp(Math.round((size - scaledSize) / 2 + x), 0, size - scaledSize);
   const top = clamp(Math.round((size - scaledSize) / 2 + y), 0, size - scaledSize);
