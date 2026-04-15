@@ -78,6 +78,23 @@ function resolveDatabaseName() {
   return defaultDatabaseName;
 }
 
+async function seedCollection(collection, documents) {
+  if (!documents.length) {
+    return;
+  }
+
+  await collection.bulkWrite(
+    documents.map((document) => ({
+      updateOne: {
+        filter: { id: document.id },
+        update: { $setOnInsert: document },
+        upsert: true
+      }
+    })),
+    { ordered: false }
+  );
+}
+
 function ensureMongoConfig() {
   if (!env.mongodbUri) {
     throw new Error("Missing MONGODB_URI. Add it to your local env file and Vercel project settings.");
@@ -126,15 +143,15 @@ async function ensureDatabaseSetup() {
       const seedOperations = [];
 
       if (projectCount === 0) {
-        seedOperations.push(projects.insertMany(buildSeedProjects()));
+        seedOperations.push(seedCollection(projects, buildSeedProjects()));
       }
 
       if (exportCount === 0) {
-        seedOperations.push(exportsCollection.insertMany(buildSeedExports()));
+        seedOperations.push(seedCollection(exportsCollection, buildSeedExports()));
       }
 
       if (analyticsCount === 0) {
-        seedOperations.push(analyticsEvents.insertMany(buildSeedAnalyticsEvents()));
+        seedOperations.push(seedCollection(analyticsEvents, buildSeedAnalyticsEvents()));
       }
 
       if (seedOperations.length) {

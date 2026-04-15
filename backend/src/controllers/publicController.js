@@ -118,6 +118,14 @@ function normalizeTrackingContext(req, overrides = {}) {
   };
 }
 
+async function trackEventSafely(payload) {
+  try {
+    return await analyticsService.trackEvent(payload);
+  } catch {
+    return null;
+  }
+}
+
 function getPresets(_req, res) {
   res.json({
     presets: projectService.listPresets()
@@ -131,7 +139,7 @@ async function createProject(req, res) {
   );
 
   if (hasUploadedAsset || project.sourceType === "upload") {
-    await analyticsService.trackEvent({
+    await trackEventSafely({
       type: "upload_completed",
       ...normalizeTrackingContext(req, {
         projectId: project.id,
@@ -168,7 +176,7 @@ async function updateProject(req, res) {
 async function getPreview(req, res) {
   const preview = await projectService.buildPreview(req.params.projectId);
 
-  await analyticsService.trackEvent({
+  await trackEventSafely({
     type: "preview_opened",
     ...normalizeTrackingContext(req, {
       projectId: req.params.projectId,
@@ -183,7 +191,7 @@ async function getPreview(req, res) {
 
 async function createExport(req, res, next) {
   try {
-    await analyticsService.trackEvent({
+    await trackEventSafely({
       type: "export_started",
       ...normalizeTrackingContext(req, {
         projectId: req.params.projectId,
@@ -215,15 +223,16 @@ async function createExport(req, res, next) {
 }
 
 async function trackEvent(req, res) {
-  const event = await analyticsService.trackEvent({
+  const event = await trackEventSafely({
     ...req.body,
     ...normalizeTrackingContext(req, {
       metadata: req.body?.metadata || {}
     })
   });
 
-  res.status(201).json({
-    event
+  res.status(event ? 201 : 202).json({
+    event,
+    accepted: Boolean(event)
   });
 }
 
