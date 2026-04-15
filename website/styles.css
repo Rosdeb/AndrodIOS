@@ -114,9 +114,9 @@ p {
 }
 
 .brand-lockup h1 {
-  color: #1060af;
+  color: #023d79;
   font-size: clamp(2.2rem, 3vw, 2.8rem);
-  letter-spacing: -0.03em;
+  letter-spacing: -0.05em;
 }
 
 .topbar-links {

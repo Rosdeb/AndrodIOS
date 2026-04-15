@@ -1,6 +1,7 @@
 const defaultAssetPath = "/website/assets/icons/app-builder-icon.png";
 const maxIconTextLength = 3;
 const maxUploadSizeBytes = 10 * 1024 * 1024;
+const sessionTimeoutMs = 30 * 60 * 1000;
 
 const regionDisplayNames = typeof Intl.DisplayNames === "function"
   ? new Intl.DisplayNames(["en"], { type: "region" })
@@ -22,6 +23,7 @@ const timezoneCountryFallbacks = {
 const state = {
   projectId: null,
   sessionId: "",
+  sessionLastSeenAt: 0,
   projectName: "AppIcon",
   exportFileName: "Appicon",
   selectedPlatforms: ["android", "ios"],
@@ -196,19 +198,66 @@ function createSessionId() {
   return `session-${Date.now()}-${Math.random().toString(16).slice(2)}`;
 }
 
-function ensureSessionId() {
-  if (state.sessionId) {
-    return state.sessionId;
+function loadStoredSessionState() {
+  try {
+    const storedValue = window.localStorage?.getItem("iconforge-session-state");
+
+    if (storedValue) {
+      const parsed = JSON.parse(storedValue);
+
+      if (parsed?.id) {
+        return {
+          id: parsed.id,
+          lastSeenAt: Number(parsed.lastSeenAt || 0)
+        };
+      }
+    }
+
+    const legacySessionId = window.localStorage?.getItem("iconforge-session-id");
+
+    if (legacySessionId) {
+      return {
+        id: legacySessionId,
+        lastSeenAt: Date.now()
+      };
+    }
+  } catch {
+    // Ignore storage issues and fall back to an in-memory session.
   }
 
-  const existing = window.localStorage?.getItem("iconforge-session-id");
-  state.sessionId = existing || createSessionId();
+  return null;
+}
 
+function persistSessionState(sessionState) {
   try {
-    window.localStorage?.setItem("iconforge-session-id", state.sessionId);
+    window.localStorage?.setItem("iconforge-session-state", JSON.stringify(sessionState));
+    window.localStorage?.setItem("iconforge-session-id", sessionState.id);
   } catch {
     // Ignore storage failures and keep the in-memory session.
   }
+}
+
+function ensureSessionId() {
+  const now = Date.now();
+  const storedSession = loadStoredSessionState();
+  const shouldReuseStoredSession = storedSession?.id && (now - storedSession.lastSeenAt) < sessionTimeoutMs;
+  const currentSessionExpired = !state.sessionId || (state.sessionLastSeenAt && (now - state.sessionLastSeenAt) >= sessionTimeoutMs);
+
+  if (!currentSessionExpired && state.sessionId) {
+    state.sessionLastSeenAt = now;
+    persistSessionState({
+      id: state.sessionId,
+      lastSeenAt: state.sessionLastSeenAt
+    });
+    return state.sessionId;
+  }
+
+  state.sessionId = shouldReuseStoredSession ? storedSession.id : createSessionId();
+  state.sessionLastSeenAt = now;
+  persistSessionState({
+    id: state.sessionId,
+    lastSeenAt: state.sessionLastSeenAt
+  });
 
   return state.sessionId;
 }
