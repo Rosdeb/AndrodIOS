@@ -526,6 +526,7 @@ function render() {
   const zoomPct = Math.round((state.zoom - 1) * 100);
   const zoomEl = document.querySelector("#zoom-output");
   const paddingEl = document.querySelector("#padding-output");
+  state.exportFileName = resolveExportFileName(state.projectName);
   if (zoomEl) zoomEl.textContent = `${zoomPct >= 0 ? '+' : ''}${zoomPct}% zoom`;
   if (paddingEl) paddingEl.textContent = `${state.padding}px`;
   elements.projectName.value = state.projectName;
@@ -563,7 +564,7 @@ function render() {
 
 function syncStateFromInputs() {
   state.projectName = elements.projectName.value;
-  state.exportFileName = resolveExportFileName(elements.exportFileName?.value || state.projectName);
+  state.exportFileName = resolveExportFileName(state.projectName);
   state.backgroundColor = elements.bgColor.value;
   state.foregroundColor = elements.fgColor.value;
   state.shape = elements.shape.value;
@@ -692,7 +693,7 @@ async function saveProject() {
   state.assetDataUrl = data.project.icon.assetDataUrl || null;
   state.assetName = data.project.icon.assetName || "";
   state.assetMimeType = data.project.icon.assetMimeType || "";
-  state.exportFileName = resolveExportFileName(data.project.icon.exportFileName || state.exportFileName || resolvedProjectName);
+  state.exportFileName = resolveExportFileName(data.project.name || resolvedProjectName);
   state.blendWhiteBackground = Boolean(data.project.icon.blendWhiteBackground);
   elements.apiStatus.textContent = `Project saved: ${data.project.name} (${data.project.id.slice(0, 8)})`;
   render();
@@ -776,7 +777,6 @@ async function generateExportPlan() {
 function bindEvents() {
   [
     elements.projectName,
-    elements.exportFileName,
     elements.bgColor,
     elements.fgColor,
     elements.shape,

@@ -1,9 +1,17 @@
 {
   "name": "androdios",
   "private": true,
+  "engines": {
+    "node": "20.x"
+  },
   "scripts": {
     "dev": "npm --prefix backend run dev",
     "start": "npm --prefix backend run start",
     "install:backend": "npm --prefix backend install"
+  },
+  "dependencies": {
+    "express": "^4.21.2",
+    "jszip": "^3.10.1",
+    "sharp": "^0.34.5"
   }
 }

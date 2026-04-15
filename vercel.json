@@ -1,0 +1,20 @@
+{
+  "version": 2,
+  "functions": {
+    "api/[...route].mjs": {
+      "runtime": "nodejs20.x",
+      "memory": 1024,
+      "maxDuration": 60
+    }
+  },
+  "rewrites": [
+    {
+      "source": "/admin",
+      "destination": "/admin/index.html"
+    },
+    {
+      "source": "/",
+      "destination": "/website/index.html"
+    }
+  ]
+}

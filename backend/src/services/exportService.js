@@ -1,10 +1,9 @@
 import { randomUUID } from "node:crypto";
-import { execFile } from "node:child_process";
-import { promisify } from "node:util";
-import { mkdtemp, readFile, rm, writeFile, mkdir } from "node:fs/promises";
+import { mkdtemp, readFile, readdir, rm, stat, writeFile, mkdir } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import JSZip from "jszip";
 import sharp from "sharp";
 
 import { store } from "../data/store.js";
@@ -12,7 +11,6 @@ import { createHttpError } from "../utils/httpError.js";
 import { analyticsService } from "./analyticsService.js";
 import { projectService } from "./projectService.js";
 
-const execFileAsync = promisify(execFile);
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const workspaceRoot = path.resolve(__dirname, "../../..");
@@ -51,6 +49,23 @@ const iosSizes = [
   { role: "ios-marketing", idiom: "ios-marketing", size: "1024x1024", scale: "1x", pixelSize: "1024x1024", file: "appstore.png" }
 ];
 
+const iosLegacySizes = [
+  { category: "legacy", pixelSize: "57x57", file: "legacy-iphone-app-57.png" },
+  { category: "legacy", pixelSize: "114x114", file: "legacy-iphone-app-114.png" },
+  { category: "legacy", pixelSize: "72x72", file: "legacy-ipad-app-72.png" },
+  { category: "legacy", pixelSize: "144x144", file: "legacy-ipad-app-144.png" },
+  { category: "legacy", pixelSize: "50x50", file: "legacy-ipad-spotlight-50.png" },
+  { category: "legacy", pixelSize: "100x100", file: "legacy-ipad-spotlight-100.png" },
+  { category: "legacy", pixelSize: "29x29", file: "legacy-iphone-settings-29.png" },
+  { category: "legacy", pixelSize: "58x58", file: "legacy-iphone-settings-58.png" },
+  { category: "legacy", pixelSize: "87x87", file: "legacy-iphone-settings-87.png" },
+  { category: "legacy", pixelSize: "40x40", file: "legacy-iphone-spotlight-40.png" },
+  { category: "legacy", pixelSize: "80x80", file: "legacy-iphone-spotlight-80.png" },
+  { category: "legacy", pixelSize: "120x120", file: "legacy-iphone-spotlight-120.png" },
+  { category: "legacy", pixelSize: "29x29", file: "legacy-ipad-settings-29.png" },
+  { category: "legacy", pixelSize: "58x58", file: "legacy-ipad-settings-58.png" }
+];
+
 const masterIconSize = 2048;
 const editorReferenceSize = 280;
 const iosArtworkScaleMultiplier = 0.75;
@@ -63,6 +78,10 @@ function sanitizePackageName(name) {
     .replace(/^-+|-+$/g, "");
 
   return normalized || "app-icons";
+}
+
+function buildPackageName(baseName) {
+  return `${sanitizePackageName(baseName)}.zip`;
 }
 
 function parseDataUrl(dataUrl) {
@@ -320,11 +339,20 @@ async function createFileSet(rootDirectory, packageRootName, project, platforms)
     const marketingIcon = iosSizes.find((item) => item.idiom === "ios-marketing");
     const assetCatalogIcons = iosSizes.filter((item) => item.idiom !== "ios-marketing");
     const appIconSetDirectory = path.join(exportRoot, "ios", "AppIcon.appiconset");
+    const legacyDirectory = path.join(exportRoot, "ios", "legacy");
     await mkdir(appIconSetDirectory, { recursive: true });
+    await mkdir(legacyDirectory, { recursive: true });
 
     for (const item of assetCatalogIcons) {
       await writeFile(
         path.join(appIconSetDirectory, item.file),
+        await renderOutputIcon(renderedIosMasterIcon, getOutputPixelSize(item.pixelSize))
+      );
+    }
+
+    for (const item of iosLegacySizes) {
+      await writeFile(
+        path.join(legacyDirectory, item.file),
         await renderOutputIcon(renderedIosMasterIcon, getOutputPixelSize(item.pixelSize))
       );
     }
@@ -345,49 +373,34 @@ async function createFileSet(rootDirectory, packageRootName, project, platforms)
   return exportRoot;
 }
 
-async function buildZipBuffer(exportRoot, packageRootName) {
-  const zipFilePath = path.join(path.dirname(exportRoot), `${packageRootName}.zip`);
-  const workingDirectory = path.dirname(exportRoot);
+async function addDirectoryToZip(zip, directoryPath, zipPrefix) {
+  const entries = await readdir(directoryPath);
 
-  const createZipWithCommand = async (command, args, options = {}) => {
-    await execFileAsync(command, args, options);
-    return readFile(zipFilePath);
-  };
+  for (const entry of entries) {
+    const absolutePath = path.join(directoryPath, entry);
+    const stats = await stat(absolutePath);
+    const zipPath = `${zipPrefix}/${entry}`;
 
-  if (process.platform === "win32") {
-    const escapePowerShell = (value) => String(value).replace(/'/g, "''");
-    const windowsStrategies = [
-      () => createZipWithCommand("powershell.exe", [
-        "-NoProfile",
-        "-NonInteractive",
-        "-Command",
-        `Compress-Archive -LiteralPath '${escapePowerShell(exportRoot)}' -DestinationPath '${escapePowerShell(zipFilePath)}' -Force`
-      ]),
-      () => createZipWithCommand("tar.exe", ["-a", "-c", "-f", zipFilePath, packageRootName], {
-        cwd: workingDirectory
-      })
-    ];
-
-    let lastError;
-
-    for (const strategy of windowsStrategies) {
-      try {
-        const buffer = await strategy();
-        await rm(zipFilePath, { force: true });
-        return buffer;
-      } catch (error) {
-        lastError = error;
-      }
+    if (stats.isDirectory()) {
+      await addDirectoryToZip(zip, absolutePath, zipPath);
+      continue;
     }
 
-    throw lastError;
-  } else {
-    const buffer = await createZipWithCommand("zip", ["-rq", zipFilePath, packageRootName], {
-      cwd: workingDirectory
-    });
-    await rm(zipFilePath, { force: true });
-    return buffer;
+    zip.file(zipPath, await readFile(absolutePath));
   }
+}
+
+async function buildZipBuffer(exportRoot, packageRootName) {
+  const zip = new JSZip();
+  await addDirectoryToZip(zip, exportRoot, packageRootName);
+
+  return zip.generateAsync({
+    type: "nodebuffer",
+    compression: "DEFLATE",
+    compressionOptions: {
+      level: 9
+    }
+  });
 }
 
 function createExport(projectId, payload = {}) {
@@ -395,7 +408,11 @@ function createExport(projectId, payload = {}) {
   const platforms = payload.platforms || project.platforms || ["android", "ios"];
   const country = payload.country || payload.analytics?.country || "Unknown";
   const exportId = randomUUID();
-  const packageName = "Appicon.zip";
+  const packageName = buildPackageName(
+    payload.exportFileName ||
+    project.icon?.exportFileName ||
+    project.name
+  );
 
   if (!Array.isArray(platforms) || platforms.length === 0) {
     throw createHttpError(400, "At least one export platform is required");
@@ -416,6 +433,7 @@ function createExport(projectId, payload = {}) {
       ios: platforms.includes("ios")
         ? [
             ...iosSizes.map((item) => item.idiom === "ios-marketing" ? item.file : `AppIcon.appiconset/${item.file}`),
+            ...iosLegacySizes.map((item) => `legacy/${item.file}`),
             "AppIcon.appiconset/Contents.json"
           ]
         : []
@@ -447,7 +465,7 @@ function createExport(projectId, payload = {}) {
     platforms,
     manifest: {
       android: platforms.includes("android") ? androidSizes : [],
-      ios: platforms.includes("ios") ? iosSizes : []
+      ios: platforms.includes("ios") ? [...iosSizes, ...iosLegacySizes] : []
     },
     files: exportRecord.files
   };
@@ -473,10 +491,6 @@ async function createExportArchive(projectId, payload = {}) {
       zipBuffer
     };
   } catch (error) {
-    if (error.code === "ENOENT") {
-      throw createHttpError(500, "Zip tooling is not available on the server");
-    }
-
     throw error;
   } finally {
     await rm(workingDirectory, { recursive: true, force: true });
