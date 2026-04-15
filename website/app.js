@@ -23,7 +23,7 @@ const state = {
   projectId: null,
   sessionId: "",
   projectName: "AppIcon",
-  exportFileName: "appicon",
+  exportFileName: "Appicon",
   selectedPlatforms: ["android", "ios"],
   backgroundColor: "#ffffff",
   foregroundColor: "#1a2130",
@@ -91,7 +91,9 @@ const elements = {
 };
 
 function setExportMessage(message) {
-  elements.exportOutput.textContent = message;
+  if (elements.exportOutput) {
+    elements.exportOutput.textContent = message;
+  }
 }
 
 function describeShape(shape) {
@@ -179,12 +181,11 @@ function resolveProjectName(value) {
 function resolveExportFileName(value) {
   const normalized = String(value ?? "")
     .trim()
-    .toLowerCase()
     .replace(/\.zip$/i, "")
-    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/[^a-zA-Z0-9]+/g, "-")
     .replace(/^-+|-+$/g, "");
 
-  return normalized || "appicon";
+  return normalized || "Appicon";
 }
 
 function createSessionId() {
@@ -529,17 +530,31 @@ function render() {
   state.exportFileName = resolveExportFileName(state.projectName);
   if (zoomEl) zoomEl.textContent = `${zoomPct >= 0 ? '+' : ''}${zoomPct}% zoom`;
   if (paddingEl) paddingEl.textContent = `${state.padding}px`;
-  elements.projectName.value = state.projectName;
+  if (elements.projectName) {
+    elements.projectName.value = state.projectName;
+  }
   if (elements.exportFileName) {
     elements.exportFileName.value = state.exportFileName;
   }
-  elements.bgColor.value = state.backgroundColor;
-  elements.fgColor.value = state.foregroundColor;
-  elements.shape.value = state.shape;
-  elements.blendBgCheckbox.checked = state.blendWhiteBackground;
-  elements.uploadMeta.textContent = state.assetName ? `Selected: ${state.assetName}` : "No asset selected";
-  elements.uploadMeta.title = state.assetName ? `Selected: ${state.assetName}` : "No asset selected";
-  elements.clearUploadButton.hidden = !state.assetDataUrl;
+  if (elements.bgColor) {
+    elements.bgColor.value = state.backgroundColor;
+  }
+  if (elements.fgColor) {
+    elements.fgColor.value = state.foregroundColor;
+  }
+  if (elements.shape) {
+    elements.shape.value = state.shape;
+  }
+  if (elements.blendBgCheckbox) {
+    elements.blendBgCheckbox.checked = state.blendWhiteBackground;
+  }
+  if (elements.uploadMeta) {
+    elements.uploadMeta.textContent = state.assetName ? `Selected: ${state.assetName}` : "No asset selected";
+    elements.uploadMeta.title = state.assetName ? `Selected: ${state.assetName}` : "No asset selected";
+  }
+  if (elements.clearUploadButton) {
+    elements.clearUploadButton.hidden = !state.assetDataUrl;
+  }
   updateColorChip('bg-chip', 'bg-hex', state.backgroundColor);
   updateColorChip('fg-chip', 'fg-hex', state.foregroundColor);
   renderPlatformSelection();
@@ -563,14 +578,14 @@ function render() {
 }
 
 function syncStateFromInputs() {
-  state.projectName = elements.projectName.value;
+  state.projectName = elements.projectName?.value || state.projectName;
   state.exportFileName = resolveExportFileName(state.projectName);
-  state.backgroundColor = elements.bgColor.value;
-  state.foregroundColor = elements.fgColor.value;
-  state.shape = elements.shape.value;
-  state.zoom = Number(elements.zoom.value);
-  state.padding = Number(elements.padding.value);
-  state.blendWhiteBackground = elements.blendBgCheckbox.checked;
+  state.backgroundColor = elements.bgColor?.value || state.backgroundColor;
+  state.foregroundColor = elements.fgColor?.value || state.foregroundColor;
+  state.shape = elements.shape?.value || state.shape;
+  state.zoom = Number(elements.zoom?.value ?? state.zoom);
+  state.padding = Number(elements.padding?.value ?? state.padding);
+  state.blendWhiteBackground = Boolean(elements.blendBgCheckbox?.checked ?? state.blendWhiteBackground);
   render();
 }
 
@@ -629,8 +644,12 @@ function clearUploadedAsset() {
   state.assetDataUrl = null;
   state.assetName = "";
   state.assetMimeType = "";
-  elements.assetUpload.value = "";
-  elements.apiStatus.textContent = "Uploaded asset removed.";
+  if (elements.assetUpload) {
+    elements.assetUpload.value = "";
+  }
+  if (elements.apiStatus) {
+    elements.apiStatus.textContent = "Uploaded asset removed.";
+  }
   render();
 }
 
@@ -695,13 +714,17 @@ async function saveProject() {
   state.assetMimeType = data.project.icon.assetMimeType || "";
   state.exportFileName = resolveExportFileName(data.project.name || resolvedProjectName);
   state.blendWhiteBackground = Boolean(data.project.icon.blendWhiteBackground);
-  elements.apiStatus.textContent = `Project saved: ${data.project.name} (${data.project.id.slice(0, 8)})`;
+  if (elements.apiStatus) {
+    elements.apiStatus.textContent = `Project saved: ${data.project.name} (${data.project.id.slice(0, 8)})`;
+  }
   render();
 }
 
 async function refreshPreview() {
   if (!state.projectId) {
-    elements.apiStatus.textContent = "Save a project first to fetch backend preview data.";
+    if (elements.apiStatus) {
+      elements.apiStatus.textContent = "Save a project first to fetch backend preview data.";
+    }
     return;
   }
 
@@ -714,13 +737,17 @@ async function refreshPreview() {
   }
 
   const data = await response.json();
-  elements.apiStatus.textContent =
-    `Preview synced: Android ${data.preview.android.cornerStyle}, iOS ${data.preview.ios.cornerStyle}`;
+  if (elements.apiStatus) {
+    elements.apiStatus.textContent =
+      `Preview synced: Android ${data.preview.android.cornerStyle}, iOS ${data.preview.ios.cornerStyle}`;
+  }
 }
 
 async function generateExportPlan() {
   if (!hasSelectedPlatform()) {
-    elements.apiStatus.textContent = "Select at least one platform before generating the export.";
+    if (elements.apiStatus) {
+      elements.apiStatus.textContent = "Select at least one platform before generating the export.";
+    }
     return;
   }
 
@@ -731,7 +758,9 @@ async function generateExportPlan() {
   renderPlatformSelection();
   const platformLabel = selectedPlatforms.length === 2 ? "Android and iOS" : selectedPlatforms[0] === "ios" ? "iOS" : "Android";
   setExportMessage(`Preparing your ${platformLabel} export package. The download will start automatically.`);
-  elements.apiStatus.textContent = `Building ${platformLabel} export zip...`;
+  if (elements.apiStatus) {
+    elements.apiStatus.textContent = `Building ${platformLabel} export zip...`;
+  }
 
   const response = await fetch(`/api/public/projects/${state.projectId}/export`, {
     method: "POST",
@@ -771,7 +800,9 @@ async function generateExportPlan() {
   state.isExporting = false;
   renderPlatformSelection();
   setExportMessage(buildExportSummary(fileName, selectedPlatforms));
-  elements.apiStatus.textContent = `Export ready: ${fileName}`;
+  if (elements.apiStatus) {
+    elements.apiStatus.textContent = `Export ready: ${fileName}`;
+  }
 }
 
 function bindEvents() {
@@ -783,24 +814,30 @@ function bindEvents() {
     elements.zoom,
     elements.padding,
     elements.blendBgCheckbox
-  ].forEach((input) => {
+  ].filter(Boolean).forEach((input) => {
     input.addEventListener("input", syncStateFromInputs);
   });
 
-  elements.assetUpload.addEventListener("change", async (event) => {
-    try {
-      await handleAssetUpload(event);
-    } catch (error) {
-      elements.assetUpload.value = "";
-      elements.uploadMeta.textContent = "No asset selected";
-      elements.uploadMeta.title = "No asset selected";
-      elements.apiStatus.textContent = error.message;
-    }
-  });
+  if (elements.assetUpload) {
+    elements.assetUpload.addEventListener("change", async (event) => {
+      try {
+        await handleAssetUpload(event);
+      } catch (error) {
+        elements.assetUpload.value = "";
+        if (elements.uploadMeta) {
+          elements.uploadMeta.textContent = "No asset selected";
+          elements.uploadMeta.title = "No asset selected";
+        }
+        if (elements.apiStatus) {
+          elements.apiStatus.textContent = error.message;
+        }
+      }
+    });
 
-  elements.assetUpload.addEventListener("click", () => {
-    elements.assetUpload.value = "";
-  });
+    elements.assetUpload.addEventListener("click", () => {
+      elements.assetUpload.value = "";
+    });
+  }
 
   const dropzoneArea = document.querySelector("#dropzone-area");
   if (dropzoneArea) {
@@ -822,41 +859,55 @@ function bindEvents() {
       }
 
       loadUploadedAsset(file).catch((error) => {
-        elements.uploadMeta.textContent = "No asset selected";
-        elements.uploadMeta.title = "No asset selected";
-        elements.apiStatus.textContent = error.message;
+        if (elements.uploadMeta) {
+          elements.uploadMeta.textContent = "No asset selected";
+          elements.uploadMeta.title = "No asset selected";
+        }
+        if (elements.apiStatus) {
+          elements.apiStatus.textContent = error.message;
+        }
       });
     });
   }
 
-  elements.clearUploadButton.addEventListener("click", clearUploadedAsset);
+  if (elements.clearUploadButton) {
+    elements.clearUploadButton.addEventListener("click", clearUploadedAsset);
+  }
 
   elements.exportPlatformInputs.forEach((input) => {
     input.addEventListener("change", () => {
       syncPlatformSelectionFromInputs();
       renderPlatformSelection();
 
-      if (!hasSelectedPlatform()) {
+      if (!hasSelectedPlatform() && elements.apiStatus) {
         elements.apiStatus.textContent = "Select Android, iOS, or both to generate an export.";
       }
     });
   });
 
-  elements.saveProjectButton.addEventListener("click", async () => {
-    try {
-      await saveProject();
-    } catch (error) {
-      elements.apiStatus.textContent = error.message;
-    }
-  });
+  if (elements.saveProjectButton) {
+    elements.saveProjectButton.addEventListener("click", async () => {
+      try {
+        await saveProject();
+      } catch (error) {
+        if (elements.apiStatus) {
+          elements.apiStatus.textContent = error.message;
+        }
+      }
+    });
+  }
 
-  elements.loadPreviewButton.addEventListener("click", async () => {
-    try {
-      await refreshPreview();
-    } catch (error) {
-      elements.apiStatus.textContent = error.message;
-    }
-  });
+  if (elements.loadPreviewButton) {
+    elements.loadPreviewButton.addEventListener("click", async () => {
+      try {
+        await refreshPreview();
+      } catch (error) {
+        if (elements.apiStatus) {
+          elements.apiStatus.textContent = error.message;
+        }
+      }
+    });
+  }
 
   elements.exportButtons.forEach((button) => {
     button.addEventListener("click", async () => {
@@ -866,7 +917,9 @@ function bindEvents() {
         state.isExporting = false;
         renderPlatformSelection();
         setExportMessage(error.message);
-        elements.apiStatus.textContent = error.message;
+        if (elements.apiStatus) {
+          elements.apiStatus.textContent = error.message;
+        }
       }
     });
   });

@@ -52,7 +52,7 @@ async function createProject(payload) {
       assetDataUrl: payload.icon?.assetDataUrl || payload.icon?.assetUrl || null,
       assetName: payload.icon?.assetName || null,
       assetMimeType: payload.icon?.assetMimeType || null,
-      exportFileName: payload.icon?.exportFileName || "appicon",
+      exportFileName: payload.icon?.exportFileName || "Appicon",
       text: payload.icon?.text ?? "",
       autoText: payload.icon?.autoText ?? true,
       foregroundColor: payload.icon?.foregroundColor || "#ffffff",

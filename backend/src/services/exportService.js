@@ -73,11 +73,10 @@ const iosArtworkScaleMultiplier = 0.75;
 function sanitizePackageName(name) {
   const normalized = String(name || "app-icons")
     .trim()
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/[^a-zA-Z0-9]+/g, "-")
     .replace(/^-+|-+$/g, "");
 
-  return normalized || "app-icons";
+  return normalized || "Appicon";
 }
 
 function buildPackageName(baseName) {
