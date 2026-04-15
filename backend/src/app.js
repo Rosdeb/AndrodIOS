@@ -54,6 +54,12 @@ app.use((req, res) => {
 app.use((err, _req, res, _next) => {
   const status = err.statusCode || 500;
 
+  console.error("Backend request failed", {
+    status,
+    message: err.message,
+    stack: err.stack
+  });
+
   res.status(status).json({
     error: err.message || "Internal server error"
   });
