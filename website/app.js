@@ -41,7 +41,7 @@ const state = {
 
 const EXPORT_COUNTS = {
   android: 6,
-  ios: 37
+  ios: 23
 };
 
 const elements = {

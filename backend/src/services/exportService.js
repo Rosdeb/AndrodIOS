@@ -49,23 +49,6 @@ const iosSizes = [
   { role: "ios-marketing", idiom: "ios-marketing", size: "1024x1024", scale: "1x", pixelSize: "1024x1024", file: "appstore.png" }
 ];
 
-const iosLegacySizes = [
-  { category: "legacy", pixelSize: "57x57", file: "legacy-iphone-app-57.png" },
-  { category: "legacy", pixelSize: "114x114", file: "legacy-iphone-app-114.png" },
-  { category: "legacy", pixelSize: "72x72", file: "legacy-ipad-app-72.png" },
-  { category: "legacy", pixelSize: "144x144", file: "legacy-ipad-app-144.png" },
-  { category: "legacy", pixelSize: "50x50", file: "legacy-ipad-spotlight-50.png" },
-  { category: "legacy", pixelSize: "100x100", file: "legacy-ipad-spotlight-100.png" },
-  { category: "legacy", pixelSize: "29x29", file: "legacy-iphone-settings-29.png" },
-  { category: "legacy", pixelSize: "58x58", file: "legacy-iphone-settings-58.png" },
-  { category: "legacy", pixelSize: "87x87", file: "legacy-iphone-settings-87.png" },
-  { category: "legacy", pixelSize: "40x40", file: "legacy-iphone-spotlight-40.png" },
-  { category: "legacy", pixelSize: "80x80", file: "legacy-iphone-spotlight-80.png" },
-  { category: "legacy", pixelSize: "120x120", file: "legacy-iphone-spotlight-120.png" },
-  { category: "legacy", pixelSize: "29x29", file: "legacy-ipad-settings-29.png" },
-  { category: "legacy", pixelSize: "58x58", file: "legacy-ipad-settings-58.png" }
-];
-
 const masterIconSize = 2048;
 const editorReferenceSize = 280;
 const iosArtworkScaleMultiplier = 0.75;
@@ -338,20 +321,11 @@ async function createFileSet(rootDirectory, packageRootName, project, platforms)
     const marketingIcon = iosSizes.find((item) => item.idiom === "ios-marketing");
     const assetCatalogIcons = iosSizes.filter((item) => item.idiom !== "ios-marketing");
     const appIconSetDirectory = path.join(exportRoot, "ios", "AppIcon.appiconset");
-    const legacyDirectory = path.join(exportRoot, "ios", "legacy");
     await mkdir(appIconSetDirectory, { recursive: true });
-    await mkdir(legacyDirectory, { recursive: true });
 
     for (const item of assetCatalogIcons) {
       await writeFile(
         path.join(appIconSetDirectory, item.file),
-        await renderOutputIcon(renderedIosMasterIcon, getOutputPixelSize(item.pixelSize))
-      );
-    }
-
-    for (const item of iosLegacySizes) {
-      await writeFile(
-        path.join(legacyDirectory, item.file),
         await renderOutputIcon(renderedIosMasterIcon, getOutputPixelSize(item.pixelSize))
       );
     }
@@ -433,7 +407,6 @@ async function createExport(projectId, payload = {}) {
       ios: platforms.includes("ios")
         ? [
             ...iosSizes.map((item) => item.idiom === "ios-marketing" ? item.file : `AppIcon.appiconset/${item.file}`),
-            ...iosLegacySizes.map((item) => `legacy/${item.file}`),
             "AppIcon.appiconset/Contents.json"
           ]
         : []
@@ -465,7 +438,7 @@ async function createExport(projectId, payload = {}) {
     platforms,
     manifest: {
       android: platforms.includes("android") ? androidSizes : [],
-      ios: platforms.includes("ios") ? [...iosSizes, ...iosLegacySizes] : []
+      ios: platforms.includes("ios") ? iosSizes : []
     },
     files: exportRecord.files
   };
