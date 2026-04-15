@@ -124,14 +124,14 @@ function getPresets(_req, res) {
   });
 }
 
-function createProject(req, res) {
-  const project = projectService.createProject(req.body);
+async function createProject(req, res) {
+  const project = await projectService.createProject(req.body);
   const hasUploadedAsset = Boolean(
     project.icon.assetName || project.icon.assetUrl || project.icon.assetDataUrl
   );
 
   if (hasUploadedAsset || project.sourceType === "upload") {
-    analyticsService.trackEvent({
+    await analyticsService.trackEvent({
       type: "upload_completed",
       ...normalizeTrackingContext(req, {
         projectId: project.id,
@@ -149,26 +149,26 @@ function createProject(req, res) {
   });
 }
 
-function getProject(req, res) {
-  const project = projectService.getProject(req.params.projectId);
+async function getProject(req, res) {
+  const project = await projectService.getProject(req.params.projectId);
 
   res.json({
     project
   });
 }
 
-function updateProject(req, res) {
-  const project = projectService.updateProject(req.params.projectId, req.body);
+async function updateProject(req, res) {
+  const project = await projectService.updateProject(req.params.projectId, req.body);
 
   res.json({
     project
   });
 }
 
-function getPreview(req, res) {
-  const preview = projectService.buildPreview(req.params.projectId);
+async function getPreview(req, res) {
+  const preview = await projectService.buildPreview(req.params.projectId);
 
-  analyticsService.trackEvent({
+  await analyticsService.trackEvent({
     type: "preview_opened",
     ...normalizeTrackingContext(req, {
       projectId: req.params.projectId,
@@ -183,7 +183,7 @@ function getPreview(req, res) {
 
 async function createExport(req, res, next) {
   try {
-    analyticsService.trackEvent({
+    await analyticsService.trackEvent({
       type: "export_started",
       ...normalizeTrackingContext(req, {
         projectId: req.params.projectId,
@@ -214,8 +214,8 @@ async function createExport(req, res, next) {
   }
 }
 
-function trackEvent(req, res) {
-  const event = analyticsService.trackEvent({
+async function trackEvent(req, res) {
+  const event = await analyticsService.trackEvent({
     ...req.body,
     ...normalizeTrackingContext(req, {
       metadata: req.body?.metadata || {}

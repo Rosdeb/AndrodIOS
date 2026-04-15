@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto";
 
-import { store } from "../data/store.js";
+import { getCollections, withoutMongoId } from "../data/database.js";
 import { createHttpError } from "../utils/httpError.js";
 
 function listPresets() {
@@ -35,10 +35,12 @@ function listPresets() {
   ];
 }
 
-function createProject(payload) {
+async function createProject(payload) {
   if (!payload?.name) {
     throw createHttpError(400, "Project name is required");
   }
+
+  const { projects } = await getCollections();
 
   const project = {
     id: randomUUID(),
@@ -68,12 +70,13 @@ function createProject(payload) {
     updatedAt: new Date().toISOString()
   };
 
-  store.projects.unshift(project);
+  await projects.insertOne(project);
   return project;
 }
 
-function getProject(projectId) {
-  const project = store.projects.find((item) => item.id === projectId);
+async function getProject(projectId) {
+  const { projects } = await getCollections();
+  const project = withoutMongoId(await projects.findOne({ id: projectId }));
 
   if (!project) {
     throw createHttpError(404, "Project not found");
@@ -82,8 +85,9 @@ function getProject(projectId) {
   return project;
 }
 
-function updateProject(projectId, payload) {
-  const project = getProject(projectId);
+async function updateProject(projectId, payload) {
+  const project = await getProject(projectId);
+  const { projects } = await getCollections();
 
   project.name = payload.name || project.name;
   project.platforms = payload.platforms || project.platforms;
@@ -93,11 +97,23 @@ function updateProject(projectId, payload) {
   };
   project.updatedAt = new Date().toISOString();
 
+  await projects.updateOne(
+    { id: projectId },
+    {
+      $set: {
+        name: project.name,
+        platforms: project.platforms,
+        icon: project.icon,
+        updatedAt: project.updatedAt
+      }
+    }
+  );
+
   return project;
 }
 
-function buildPreview(projectId) {
-  const project = getProject(projectId);
+async function buildPreview(projectId) {
+  const project = await getProject(projectId);
 
   return {
     projectId,

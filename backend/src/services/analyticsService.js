@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto";
 
-import { store } from "../data/store.js";
+import { getCollections } from "../data/database.js";
 
 const countryGeoMap = {
   "United States": { lat: 38.8977, lng: -77.0365, region: "North America" },
@@ -14,7 +14,26 @@ const countryGeoMap = {
   UK: { lat: 51.5072, lng: -0.1276, region: "Europe" }
 };
 
-function trackEvent(payload) {
+async function getProjectDocuments() {
+  const { projects } = await getCollections();
+  return projects.find({}, { projection: { _id: 0 } }).toArray();
+}
+
+async function getExportDocuments() {
+  const { exports } = await getCollections();
+  return exports.find({}, { projection: { _id: 0 } }).toArray();
+}
+
+async function getAnalyticsEvents() {
+  const { analyticsEvents } = await getCollections();
+  return analyticsEvents
+    .find({}, { projection: { _id: 0 } })
+    .sort({ createdAt: -1 })
+    .toArray();
+}
+
+async function trackEvent(payload) {
+  const { analyticsEvents } = await getCollections();
   const event = {
     id: randomUUID(),
     type: payload.type,
@@ -25,39 +44,46 @@ function trackEvent(payload) {
     metadata: payload.metadata || {}
   };
 
-  store.analyticsEvents.unshift(event);
+  await analyticsEvents.insertOne(event);
   return event;
 }
 
-function getOverview() {
-  const events = store.analyticsEvents;
+async function getOverview() {
+  const [events, projects, realtime] = await Promise.all([
+    getAnalyticsEvents(),
+    getProjectDocuments(),
+    getRealtimeAnalytics()
+  ]);
   const pageViews = events.filter((event) => event.type === "page_view");
   const exportCompleted = events.filter((event) => event.type === "export_completed");
   const uploads = events.filter((event) => event.type === "upload_completed");
   const uniqueCountries = new Set(events.map((event) => event.country));
-  const topCountry = getCountryBreakdown()[0] || null;
-  const platformBreakdown = getPlatformBreakdown();
-  const realtime = getRealtimeAnalytics();
+  const [topCountry, platformBreakdown, trend] = await Promise.all([
+    getCountryBreakdown(events).then((items) => items[0] || null),
+    getPlatformBreakdown(events),
+    buildDailyTrend(7, events)
+  ]);
 
   return {
     totals: {
       visitors: pageViews.length,
       uniqueCountries: uniqueCountries.size,
-      projects: store.projects.length,
+      projects: projects.length,
       exports: exportCompleted.length,
       uploads: uploads.length,
       liveUsers: realtime.activeVisitors
     },
     topCountry,
     platformBreakdown,
-    trend: buildDailyTrend(7)
+    trend
   };
 }
 
-function getCountryBreakdown() {
+async function getCountryBreakdown(eventsInput = null) {
+  const events = eventsInput || await getAnalyticsEvents();
   const map = new Map();
 
-  for (const event of store.analyticsEvents) {
+  for (const event of events) {
     const entry = map.get(event.country) || {
       country: event.country,
       visits: 0,
@@ -100,14 +126,14 @@ function getCountryBreakdown() {
     });
 }
 
-function getPlatformBreakdown() {
+function getPlatformBreakdown(events) {
   const breakdown = {
     android: 0,
     ios: 0,
     both: 0
   };
 
-  for (const event of store.analyticsEvents) {
+  for (const event of events) {
     if (event.type !== "export_completed") {
       continue;
     }
@@ -124,7 +150,7 @@ function getPlatformBreakdown() {
   return breakdown;
 }
 
-function getFunnel() {
+async function getFunnel() {
   const steps = [
     "page_view",
     "upload_completed",
@@ -135,8 +161,9 @@ function getFunnel() {
 
   const stepIndexMap = new Map(steps.map((step, index) => [step, index]));
   const actorMap = new Map();
+  const events = await getSortedEventsDesc();
 
-  for (const event of getSortedEventsDesc()) {
+  for (const event of events) {
     const stepIndex = stepIndexMap.get(event.type);
 
     if (typeof stepIndex !== "number") {
@@ -176,7 +203,8 @@ function getFunnel() {
   });
 }
 
-function getFeatureUsage() {
+async function getFeatureUsage() {
+  const events = await getAnalyticsEvents();
   const interestingEvents = [
     "color_changed",
     "zoom_changed",
@@ -186,30 +214,41 @@ function getFeatureUsage() {
 
   return interestingEvents.map((type) => ({
     type,
-    total: store.analyticsEvents.filter((event) => event.type === type).length
+    total: events.filter((event) => event.type === type).length
   }));
 }
 
-function getRecentActivity(limit = 10) {
-  return getSortedEventsDesc().slice(0, limit);
+async function getRecentActivity(limit = 10) {
+  const { analyticsEvents } = await getCollections();
+
+  return analyticsEvents
+    .find({}, { projection: { _id: 0 } })
+    .sort({ createdAt: -1 })
+    .limit(limit)
+    .toArray();
 }
 
-function getExportAnalytics() {
-  const exports = store.exports;
+async function getExportAnalytics() {
+  const [exports, countries] = await Promise.all([
+    getExportDocuments(),
+    getCountryBreakdown()
+  ]);
 
   return {
     totalExports: exports.length,
     androidExports: exports.filter((item) => item.platforms.includes("android")).length,
     iosExports: exports.filter((item) => item.platforms.includes("ios")).length,
-    countries: getCountryBreakdown().filter((entry) => entry.exports > 0)
+    countries: countries.filter((entry) => entry.exports > 0)
   };
 }
 
-function buildDailyTrend(days) {
+async function buildDailyTrend(days, eventsInput = null) {
+  const events = eventsInput || await getAnalyticsEvents();
   const buckets = [];
 
   for (let index = days - 1; index >= 0; index -= 1) {
-    const date = new Date(store.now);
+    const date = new Date();
+    date.setUTCHours(0, 0, 0, 0);
     date.setUTCDate(date.getUTCDate() - index);
     const isoDate = date.toISOString().slice(0, 10);
 
@@ -220,7 +259,7 @@ function buildDailyTrend(days) {
     });
   }
 
-  for (const event of store.analyticsEvents) {
+  for (const event of events) {
     const bucket = buckets.find((item) => item.date === event.createdAt.slice(0, 10));
 
     if (!bucket) {
@@ -239,26 +278,25 @@ function buildDailyTrend(days) {
   return buckets;
 }
 
-function getSortedEventsDesc() {
-  return [...store.analyticsEvents].sort((left, right) => {
-    return new Date(right.createdAt).getTime() - new Date(left.createdAt).getTime();
-  });
+async function getSortedEventsDesc() {
+  return getAnalyticsEvents();
 }
 
-function getAnalyticsReferenceTime() {
-  const latestEventTime = store.analyticsEvents.reduce((maxTime, event) => {
+async function getAnalyticsReferenceTime(eventsInput = null) {
+  const events = eventsInput || await getAnalyticsEvents();
+  const latestEventTime = events.reduce((maxTime, event) => {
     return Math.max(maxTime, new Date(event.createdAt).getTime());
   }, 0);
 
-  const storeTime = store.now ? new Date(store.now).getTime() : 0;
-  return new Date(Math.max(latestEventTime, storeTime));
+  return new Date(Math.max(latestEventTime, Date.now()));
 }
 
-function getRealtimeWindowEvents(windowMinutes = 30) {
-  const referenceTime = getAnalyticsReferenceTime();
+async function getRealtimeWindowEvents(windowMinutes = 30, eventsInput = null) {
+  const events = eventsInput || await getAnalyticsEvents();
+  const referenceTime = await getAnalyticsReferenceTime(events);
   const startTime = referenceTime.getTime() - (windowMinutes * 60 * 1000);
 
-  return getSortedEventsDesc().filter((event) => {
+  return events.filter((event) => {
     const eventTime = new Date(event.createdAt).getTime();
     return eventTime >= startTime && eventTime <= referenceTime.getTime();
   });
@@ -320,9 +358,10 @@ function buildRealtimeSparkline(events, referenceTime, bucketCount = 12, windowM
   return buckets;
 }
 
-function getRealtimeAnalytics(windowMinutes = 30) {
-  const referenceTime = getAnalyticsReferenceTime();
-  const recentEvents = getRealtimeWindowEvents(windowMinutes);
+async function getRealtimeAnalytics(windowMinutes = 30) {
+  const events = await getAnalyticsEvents();
+  const referenceTime = await getAnalyticsReferenceTime(events);
+  const recentEvents = await getRealtimeWindowEvents(windowMinutes, events);
   const sessionMap = new Map();
   const countryMap = new Map();
 

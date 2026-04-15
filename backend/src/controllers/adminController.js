@@ -1,43 +1,43 @@
 import { analyticsService } from "../services/analyticsService.js";
 
-function getOverview(_req, res) {
-  res.json(analyticsService.getOverview());
+async function getOverview(_req, res) {
+  res.json(await analyticsService.getOverview());
 }
 
-function getCountries(_req, res) {
+async function getCountries(_req, res) {
   res.json({
-    countries: analyticsService.getCountryBreakdown()
+    countries: await analyticsService.getCountryBreakdown()
   });
 }
 
-function getFunnel(_req, res) {
+async function getFunnel(_req, res) {
   res.json({
-    funnel: analyticsService.getFunnel()
+    funnel: await analyticsService.getFunnel()
   });
 }
 
-function getFeatureUsage(_req, res) {
+async function getFeatureUsage(_req, res) {
   res.json({
-    features: analyticsService.getFeatureUsage()
+    features: await analyticsService.getFeatureUsage()
   });
 }
 
-function getActivity(req, res) {
+async function getActivity(req, res) {
   const limit = Number(req.query.limit || 10);
 
   res.json({
-    activity: analyticsService.getRecentActivity(limit)
+    activity: await analyticsService.getRecentActivity(limit)
   });
 }
 
-function getExports(_req, res) {
-  res.json(analyticsService.getExportAnalytics());
+async function getExports(_req, res) {
+  res.json(await analyticsService.getExportAnalytics());
 }
 
-function getRealtime(req, res) {
+async function getRealtime(req, res) {
   const windowMinutes = Number(req.query.windowMinutes || 30);
 
-  res.json(analyticsService.getRealtimeAnalytics(windowMinutes));
+  res.json(await analyticsService.getRealtimeAnalytics(windowMinutes));
 }
 
 export const adminController = {

@@ -6,7 +6,7 @@ import { fileURLToPath } from "node:url";
 import JSZip from "jszip";
 import sharp from "sharp";
 
-import { store } from "../data/store.js";
+import { getCollections } from "../data/database.js";
 import { createHttpError } from "../utils/httpError.js";
 import { analyticsService } from "./analyticsService.js";
 import { projectService } from "./projectService.js";
@@ -403,8 +403,9 @@ async function buildZipBuffer(exportRoot, packageRootName) {
   });
 }
 
-function createExport(projectId, payload = {}) {
-  const project = projectService.getProject(projectId);
+async function createExport(projectId, payload = {}) {
+  const { exports } = await getCollections();
+  const project = await projectService.getProject(projectId);
   const platforms = payload.platforms || project.platforms || ["android", "ios"];
   const country = payload.country || payload.analytics?.country || "Unknown";
   const exportId = randomUUID();
@@ -440,9 +441,9 @@ function createExport(projectId, payload = {}) {
     }
   };
 
-  store.exports.unshift(exportRecord);
+  await exports.insertOne(exportRecord);
 
-  analyticsService.trackEvent({
+  await analyticsService.trackEvent({
     type: "export_completed",
     country,
     platform:
@@ -472,8 +473,8 @@ function createExport(projectId, payload = {}) {
 }
 
 async function createExportArchive(projectId, payload = {}) {
-  const exportResult = createExport(projectId, payload);
-  const project = projectService.getProject(projectId);
+  const exportResult = await createExport(projectId, payload);
+  const project = await projectService.getProject(projectId);
   const workingDirectory = await mkdtemp(path.join(os.tmpdir(), "iconforge-export-"));
   const packageRootName = exportResult.packageName.replace(/\.zip$/i, "");
 
@@ -497,8 +498,12 @@ async function createExportArchive(projectId, payload = {}) {
   }
 }
 
-function listExports() {
-  return store.exports;
+async function listExports() {
+  const { exports } = await getCollections();
+  return exports
+    .find({}, { projection: { _id: 0 } })
+    .sort({ createdAt: -1 })
+    .toArray();
 }
 
 export const exportService = {
