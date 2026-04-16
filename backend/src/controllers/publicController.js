@@ -1,6 +1,7 @@
 import { analyticsService } from "../services/analyticsService.js";
 import { exportService } from "../services/exportService.js";
 import { projectService } from "../services/projectService.js";
+import { createHttpError } from "../utils/httpError.js";
 
 const regionDisplayNames = typeof Intl.DisplayNames === "function"
   ? new Intl.DisplayNames(["en"], { type: "region" })
@@ -191,10 +192,26 @@ async function getPreview(req, res) {
 
 async function createExport(req, res, next) {
   try {
-    await trackEventSafely({
+    const projectInput = req.body?.project || null;
+    const requestedProjectId = req.params.projectId || req.body?.projectId || null;
+    const project = projectInput
+      ? (
+          requestedProjectId
+            ? await projectService.updateProject(requestedProjectId, projectInput)
+            : await projectService.createProject(projectInput)
+        )
+      : requestedProjectId
+        ? await projectService.getProject(requestedProjectId)
+        : null;
+
+    if (!project) {
+      throw createHttpError(400, "Project data is required to generate an export");
+    }
+
+    void trackEventSafely({
       type: "export_started",
       ...normalizeTrackingContext(req, {
-        projectId: req.params.projectId,
+        projectId: project.id,
         platform:
           Array.isArray(req.body?.platforms) && req.body.platforms.length === 2
             ? "android-ios"
@@ -210,7 +227,7 @@ async function createExport(req, res, next) {
       })
     });
 
-    const exportResult = await exportService.createExportArchive(req.params.projectId, req.body);
+    const exportResult = await exportService.createExportArchiveForProject(project, req.body);
 
     res.setHeader("Content-Type", "application/zip");
     res.setHeader("Content-Disposition", `attachment; filename="${exportResult.packageName}"`);

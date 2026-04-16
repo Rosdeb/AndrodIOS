@@ -10,6 +10,7 @@ publicRouter.post("/projects", asyncHandler(publicController.createProject));
 publicRouter.get("/projects/:projectId", asyncHandler(publicController.getProject));
 publicRouter.patch("/projects/:projectId", asyncHandler(publicController.updateProject));
 publicRouter.get("/projects/:projectId/preview", asyncHandler(publicController.getPreview));
+publicRouter.post("/exports", asyncHandler(publicController.createExport));
 publicRouter.post("/projects/:projectId/export", asyncHandler(publicController.createExport));
 publicRouter.post("/events", asyncHandler(publicController.trackEvent));
 

@@ -704,6 +704,41 @@ function clearUploadedAsset() {
 
 async function saveProject() {
   syncStateFromInputs();
+  const payload = buildProjectPayload();
+  const resolvedProjectName = payload.name;
+  const response = await fetch(
+    state.projectId
+      ? `/api/public/projects/${state.projectId}`
+      : "/api/public/projects",
+    {
+      method: state.projectId ? "PATCH" : "POST",
+      headers: {
+        "Content-Type": "application/json",
+        ...getTrackingHeaders()
+      },
+      body: JSON.stringify(payload)
+    }
+  );
+
+  if (!response.ok) {
+    throw new Error("Unable to save project");
+  }
+
+  const data = await response.json();
+  state.projectId = data.project.id;
+  state.projectName = data.project.name || resolvedProjectName;
+  state.assetDataUrl = data.project.icon.assetDataUrl || null;
+  state.assetName = data.project.icon.assetName || "";
+  state.assetMimeType = data.project.icon.assetMimeType || "";
+  state.exportFileName = resolveExportFileName(data.project.name || resolvedProjectName);
+  state.blendWhiteBackground = Boolean(data.project.icon.blendWhiteBackground);
+  if (elements.apiStatus) {
+    elements.apiStatus.textContent = `Project saved: ${data.project.name} (${data.project.id.slice(0, 8)})`;
+  }
+  render();
+}
+
+function buildProjectPayload() {
   const resolvedProjectName = resolveProjectName(state.projectName);
   const iconText = getCurrentIconText();
   const analytics = getAnalyticsContext({
@@ -711,7 +746,7 @@ async function saveProject() {
     sourceAsset: state.assetName || null
   });
 
-  const payload = {
+  return {
     name: resolvedProjectName,
     platforms: getSelectedPlatforms(),
     analytics,
@@ -736,37 +771,6 @@ async function saveProject() {
       shape: state.shape
     }
   };
-
-  const endpoint = state.projectId
-    ? `/api/public/projects/${state.projectId}`
-    : "/api/public/projects";
-  const method = state.projectId ? "PATCH" : "POST";
-
-  const response = await fetch(endpoint, {
-    method,
-    headers: {
-      "Content-Type": "application/json",
-      ...getTrackingHeaders()
-    },
-    body: JSON.stringify(payload)
-  });
-
-  if (!response.ok) {
-    throw new Error("Unable to save project");
-  }
-
-  const data = await response.json();
-  state.projectId = data.project.id;
-  state.projectName = data.project.name || resolvedProjectName;
-  state.assetDataUrl = data.project.icon.assetDataUrl || null;
-  state.assetName = data.project.icon.assetName || "";
-  state.assetMimeType = data.project.icon.assetMimeType || "";
-  state.exportFileName = resolveExportFileName(data.project.name || resolvedProjectName);
-  state.blendWhiteBackground = Boolean(data.project.icon.blendWhiteBackground);
-  if (elements.apiStatus) {
-    elements.apiStatus.textContent = `Project saved: ${data.project.name} (${data.project.id.slice(0, 8)})`;
-  }
-  render();
 }
 
 async function refreshPreview() {
@@ -800,8 +804,9 @@ async function generateExportPlan() {
     return;
   }
 
-  await saveProject();
+  syncStateFromInputs();
   const selectedPlatforms = getSelectedPlatforms();
+  const projectPayload = buildProjectPayload();
 
   state.isExporting = true;
   renderPlatformSelection();
@@ -811,13 +816,15 @@ async function generateExportPlan() {
     elements.apiStatus.textContent = `Building ${platformLabel} export zip...`;
   }
 
-  const response = await fetch(`/api/public/projects/${state.projectId}/export`, {
+  const response = await fetch("/api/public/exports", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
       ...getTrackingHeaders()
     },
     body: JSON.stringify({
+      projectId: state.projectId,
+      project: projectPayload,
       platforms: selectedPlatforms,
       exportFileName: state.exportFileName,
       ...getAnalyticsContext({
@@ -840,6 +847,7 @@ async function generateExportPlan() {
   const fileName =
     extractFilename(response.headers.get("Content-Disposition")) ||
     `${state.exportFileName}.zip`;
+  state.projectId = response.headers.get("X-Project-Id") || state.projectId;
   const zipBlob = await response.blob();
 
   downloadBlob(zipBlob, fileName);

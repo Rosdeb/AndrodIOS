@@ -1,6 +1,5 @@
 import { randomUUID } from "node:crypto";
-import { mkdtemp, readFile, readdir, rm, stat, writeFile, mkdir } from "node:fs/promises";
-import os from "node:os";
+import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import JSZip from "jszip";
@@ -295,90 +294,97 @@ function buildContentsJson() {
   };
 }
 
-async function createFileSet(rootDirectory, packageRootName, project, platforms) {
-  const exportRoot = path.join(rootDirectory, packageRootName);
-  const sourceAsset = await loadProjectAsset(project);
-  const renderedAndroidMasterIcon = platforms.includes("android")
-    ? await renderMasterIcon(project, sourceAsset)
-    : null;
-  const renderedIosMasterIcon = platforms.includes("ios")
-    ? await renderMasterIcon(project, sourceAsset, { scaleMultiplier: iosArtworkScaleMultiplier })
-    : null;
+function buildZipPath(...segments) {
+  return segments.join("/");
+}
 
-  await mkdir(exportRoot, { recursive: true });
+async function createArchiveEntries(project, platforms) {
+  const sourceAsset = await loadProjectAsset(project);
+  const [renderedAndroidMasterIcon, renderedIosMasterIcon] = await Promise.all([
+    platforms.includes("android")
+      ? renderMasterIcon(project, sourceAsset)
+      : Promise.resolve(null),
+    platforms.includes("ios")
+      ? renderMasterIcon(project, sourceAsset, { scaleMultiplier: iosArtworkScaleMultiplier })
+      : Promise.resolve(null)
+  ]);
+  const entries = [];
 
   if (platforms.includes("android")) {
-    for (const item of androidSizes) {
-      const destination = item.folder === "play-store"
-        ? path.join(exportRoot, item.file)
-        : path.join(exportRoot, "android", item.folder, item.file);
-      await mkdir(path.dirname(destination), { recursive: true });
-      await writeFile(destination, await renderOutputIcon(renderedAndroidMasterIcon, getOutputPixelSize(item.size)));
-    }
+    const androidEntries = await Promise.all(
+      androidSizes.map(async (item) => ({
+        path: item.folder === "play-store"
+          ? item.file
+          : buildZipPath("android", item.folder, item.file),
+        data: await renderOutputIcon(renderedAndroidMasterIcon, getOutputPixelSize(item.size)),
+        options: {
+          compression: "STORE"
+        }
+      }))
+    );
+
+    entries.push(...androidEntries);
   }
 
   if (platforms.includes("ios")) {
     const marketingIcon = iosSizes.find((item) => item.idiom === "ios-marketing");
     const assetCatalogIcons = iosSizes.filter((item) => item.idiom !== "ios-marketing");
-    const appIconSetDirectory = path.join(exportRoot, "ios", "AppIcon.appiconset");
-    await mkdir(appIconSetDirectory, { recursive: true });
+    const iosEntries = await Promise.all(
+      assetCatalogIcons.map(async (item) => ({
+        path: buildZipPath("ios", "AppIcon.appiconset", item.file),
+        data: await renderOutputIcon(renderedIosMasterIcon, getOutputPixelSize(item.pixelSize)),
+        options: {
+          compression: "STORE"
+        }
+      }))
+    );
 
-    for (const item of assetCatalogIcons) {
-      await writeFile(
-        path.join(appIconSetDirectory, item.file),
-        await renderOutputIcon(renderedIosMasterIcon, getOutputPixelSize(item.pixelSize))
-      );
-    }
+    entries.push(...iosEntries);
 
     if (marketingIcon) {
-      await writeFile(
-        path.join(exportRoot, marketingIcon.file),
-        await renderOutputIcon(renderedIosMasterIcon, getOutputPixelSize(marketingIcon.pixelSize))
-      );
+      entries.push({
+        path: marketingIcon.file,
+        data: await renderOutputIcon(renderedIosMasterIcon, getOutputPixelSize(marketingIcon.pixelSize)),
+        options: {
+          compression: "STORE"
+        }
+      });
     }
 
-    await writeFile(
-      path.join(appIconSetDirectory, "Contents.json"),
-      JSON.stringify(buildContentsJson(), null, 2)
-    );
+    entries.push({
+      path: buildZipPath("ios", "AppIcon.appiconset", "Contents.json"),
+      data: JSON.stringify(buildContentsJson(), null, 2),
+      options: {
+        compression: "DEFLATE",
+        compressionOptions: {
+          level: 6
+        }
+      }
+    });
   }
 
-  return exportRoot;
+  return entries;
 }
 
-async function addDirectoryToZip(zip, directoryPath, zipPrefix) {
-  const entries = await readdir(directoryPath);
+async function buildZipBuffer(packageRootName, entries) {
+  const zip = new JSZip();
 
   for (const entry of entries) {
-    const absolutePath = path.join(directoryPath, entry);
-    const stats = await stat(absolutePath);
-    const zipPath = `${zipPrefix}/${entry}`;
-
-    if (stats.isDirectory()) {
-      await addDirectoryToZip(zip, absolutePath, zipPath);
-      continue;
-    }
-
-    zip.file(zipPath, await readFile(absolutePath));
+    zip.file(`${packageRootName}/${entry.path}`, entry.data, entry.options);
   }
-}
-
-async function buildZipBuffer(exportRoot, packageRootName) {
-  const zip = new JSZip();
-  await addDirectoryToZip(zip, exportRoot, packageRootName);
 
   return zip.generateAsync({
     type: "nodebuffer",
     compression: "DEFLATE",
     compressionOptions: {
-      level: 9
+      level: 1
     }
   });
 }
 
-async function createExport(projectId, payload = {}) {
+async function createExport(projectId, payload = {}, projectOverride = null) {
   const { exports } = await getCollections();
-  const project = await projectService.getProject(projectId);
+  const project = projectOverride || await projectService.getProject(projectId);
   const platforms = payload.platforms || project.platforms || ["android", "ios"];
   const country = payload.country || payload.analytics?.country || "Unknown";
   const exportId = randomUUID();
@@ -444,30 +450,21 @@ async function createExport(projectId, payload = {}) {
   };
 }
 
-async function createExportArchive(projectId, payload = {}) {
-  const exportResult = await createExport(projectId, payload);
-  const project = await projectService.getProject(projectId);
-  const workingDirectory = await mkdtemp(path.join(os.tmpdir(), "iconforge-export-"));
+async function createExportArchiveForProject(project, payload = {}) {
+  const exportResult = await createExport(project.id, payload, project);
   const packageRootName = exportResult.packageName.replace(/\.zip$/i, "");
+  const entries = await createArchiveEntries(project, exportResult.platforms);
+  const zipBuffer = await buildZipBuffer(packageRootName, entries);
 
-  try {
-    const exportRoot = await createFileSet(
-      workingDirectory,
-      packageRootName,
-      project,
-      exportResult.platforms
-    );
-    const zipBuffer = await buildZipBuffer(exportRoot, packageRootName);
+  return {
+    ...exportResult,
+    zipBuffer
+  };
+}
 
-    return {
-      ...exportResult,
-      zipBuffer
-    };
-  } catch (error) {
-    throw error;
-  } finally {
-    await rm(workingDirectory, { recursive: true, force: true });
-  }
+async function createExportArchive(projectId, payload = {}) {
+  const project = await projectService.getProject(projectId);
+  return createExportArchiveForProject(project, payload);
 }
 
 async function listExports() {
@@ -481,5 +478,6 @@ async function listExports() {
 export const exportService = {
   createExport,
   createExportArchive,
+  createExportArchiveForProject,
   listExports
 };
