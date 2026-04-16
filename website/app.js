@@ -2,6 +2,7 @@ const defaultAssetPath = "/website/assets/icons/app-builder-icon.png";
 const maxIconTextLength = 3;
 const maxUploadSizeBytes = 10 * 1024 * 1024;
 const sessionTimeoutMs = 30 * 60 * 1000;
+const minimumExportLoadingMs = 700;
 
 const regionDisplayNames = typeof Intl.DisplayNames === "function"
   ? new Intl.DisplayNames(["en"], { type: "region" })
@@ -43,7 +44,7 @@ const state = {
 
 const EXPORT_COUNTS = {
   android: 6,
-  ios: 23
+  ios: 37
 };
 
 const elements = {
@@ -126,7 +127,8 @@ function buildExportSummary(fileName, platforms) {
     `File: ${fileName}`,
     `Platforms: ${platformLabel}`,
     `Android outputs: ${includesAndroid ? `${EXPORT_COUNTS.android} files` : "Not included"}`,
-    `iOS outputs: ${includesIos ? `${EXPORT_COUNTS.ios} files` : "Not included"}`,
+    `iOS outputs: ${includesIos ? `${EXPORT_COUNTS.ios} image files` : "Not included"}`,
+    `iOS folder: ${includesIos ? "Assets.xcassets/AppIcon.appiconset" : "Not included"}`,
     `Icon label: ${getCurrentIconText() || "Image asset"}`,
     `Shape: ${describeShape(state.shape)}`,
     `Background: ${state.backgroundColor.toUpperCase()}`,
@@ -167,6 +169,18 @@ function downloadBlob(blob, fileName) {
   setTimeout(() => {
     URL.revokeObjectURL(objectUrl);
   }, 0);
+}
+
+function waitForNextPaint() {
+  return new Promise((resolve) => {
+    window.requestAnimationFrame(() => resolve());
+  });
+}
+
+function delay(ms) {
+  return new Promise((resolve) => {
+    window.setTimeout(resolve, ms);
+  });
 }
 
 function deriveIconText(value) {
@@ -364,7 +378,17 @@ function renderPlatformSelection() {
   });
 
   elements.exportButtons.forEach((button) => {
+    const label = button.querySelector("[data-export-label]");
+    const defaultLabel = button.dataset.defaultLabel || label?.textContent?.trim() || "Generate Export Plan";
+
+    button.dataset.defaultLabel = defaultLabel;
     button.disabled = state.isExporting || !hasSelectedPlatform();
+    button.classList.toggle("is-loading", state.isExporting);
+    button.setAttribute("aria-busy", state.isExporting ? "true" : "false");
+
+    if (label) {
+      label.textContent = state.isExporting ? "Generating..." : defaultLabel;
+    }
   });
 }
 
@@ -810,11 +834,14 @@ async function generateExportPlan() {
 
   state.isExporting = true;
   renderPlatformSelection();
+  const exportStartedAt = Date.now();
   const platformLabel = selectedPlatforms.length === 2 ? "Android and iOS" : selectedPlatforms[0] === "ios" ? "iOS" : "Android";
   setExportMessage(`Preparing your ${platformLabel} export package. The download will start automatically.`);
   if (elements.apiStatus) {
     elements.apiStatus.textContent = `Building ${platformLabel} export zip...`;
   }
+
+  await waitForNextPaint();
 
   const response = await fetch("/api/public/exports", {
     method: "POST",
@@ -839,6 +866,7 @@ async function generateExportPlan() {
   });
 
   if (!response.ok) {
+    await delay(Math.max(0, minimumExportLoadingMs - (Date.now() - exportStartedAt)));
     state.isExporting = false;
     renderPlatformSelection();
     throw new Error("Unable to generate export zip");
@@ -854,6 +882,7 @@ async function generateExportPlan() {
 
   state.lastExportFileName = fileName;
   state.lastExportAt = new Date().toLocaleString();
+  await delay(Math.max(0, minimumExportLoadingMs - (Date.now() - exportStartedAt)));
   state.isExporting = false;
   renderPlatformSelection();
   setExportMessage(buildExportSummary(fileName, selectedPlatforms));

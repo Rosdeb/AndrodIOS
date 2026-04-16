@@ -335,7 +335,10 @@
                     <span>Android</span>
                   </label>
                 </div>
-                <button class="button button-primary button-gold" id="generate-export-button" data-export-trigger="secondary">Generate Export Plan</button>
+                <button class="button button-primary button-gold" id="generate-export-button" data-export-trigger="secondary" type="button" aria-busy="false">
+                  <span class="button-ios-spinner" data-export-spinner aria-hidden="true"></span>
+                  <span data-export-label>Generate Export Plan</span>
+                </button>
               </div>
               <div class="manifest-columns">
                 <div>

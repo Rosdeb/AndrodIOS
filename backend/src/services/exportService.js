@@ -23,30 +23,32 @@ const androidSizes = [
   { folder: "play-store", size: "512x512", file: "playstore.png" }
 ];
 
-const iosSizes = [
-  { role: "iphone-notification-2x", idiom: "iphone", size: "20x20", scale: "2x", pixelSize: "40x40", file: "iphone-notification-20@2x.png" },
-  { role: "iphone-notification-3x", idiom: "iphone", size: "20x20", scale: "3x", pixelSize: "60x60", file: "iphone-notification-20@3x.png" },
-  { role: "iphone-settings-2x", idiom: "iphone", size: "29x29", scale: "2x", pixelSize: "58x58", file: "iphone-settings-29@2x.png" },
-  { role: "iphone-settings-3x", idiom: "iphone", size: "29x29", scale: "3x", pixelSize: "87x87", file: "iphone-settings-29@3x.png" },
-  { role: "iphone-spotlight-2x", idiom: "iphone", size: "40x40", scale: "2x", pixelSize: "80x80", file: "iphone-spotlight-40@2x.png" },
-  { role: "iphone-spotlight-3x", idiom: "iphone", size: "40x40", scale: "3x", pixelSize: "120x120", file: "iphone-spotlight-40@3x.png" },
-  { role: "iphone-app-2x", idiom: "iphone", size: "60x60", scale: "2x", pixelSize: "120x120", file: "iphone-app-60@2x.png" },
-  { role: "iphone-app-3x", idiom: "iphone", size: "60x60", scale: "3x", pixelSize: "180x180", file: "iphone-app-60@3x.png" },
-  { role: "iphone-message-2x", idiom: "iphone", size: "27x27", scale: "2x", pixelSize: "54x54", file: "iphone-message-27@2x.png" },
-  { role: "iphone-message-3x", idiom: "iphone", size: "27x27", scale: "3x", pixelSize: "81x81", file: "iphone-message-27@3x.png" },
-  { role: "ipad-notification-1x", idiom: "ipad", size: "20x20", scale: "1x", pixelSize: "20x20", file: "ipad-notification-20.png" },
-  { role: "ipad-notification-2x", idiom: "ipad", size: "20x20", scale: "2x", pixelSize: "40x40", file: "ipad-notification-20@2x.png" },
-  { role: "ipad-settings-1x", idiom: "ipad", size: "29x29", scale: "1x", pixelSize: "29x29", file: "ipad-settings-29.png" },
-  { role: "ipad-settings-2x", idiom: "ipad", size: "29x29", scale: "2x", pixelSize: "58x58", file: "ipad-settings-29@2x.png" },
-  { role: "ipad-spotlight-1x", idiom: "ipad", size: "40x40", scale: "1x", pixelSize: "40x40", file: "ipad-spotlight-40.png" },
-  { role: "ipad-spotlight-2x", idiom: "ipad", size: "40x40", scale: "2x", pixelSize: "80x80", file: "ipad-spotlight-40@2x.png" },
-  { role: "ipad-app-1x", idiom: "ipad", size: "76x76", scale: "1x", pixelSize: "76x76", file: "ipad-app-76.png" },
-  { role: "ipad-app-2x", idiom: "ipad", size: "76x76", scale: "2x", pixelSize: "152x152", file: "ipad-app-76@2x.png" },
-  { role: "ipad-pro-2x", idiom: "ipad", size: "83.5x83.5", scale: "2x", pixelSize: "167x167", file: "ipad-pro-83.5@2x.png" },
-  { role: "ipad-message-1x", idiom: "ipad", size: "27x27", scale: "1x", pixelSize: "27x27", file: "ipad-message-27.png" },
-  { role: "ipad-message-2x", idiom: "ipad", size: "27x27", scale: "2x", pixelSize: "54x54", file: "ipad-message-27@2x.png" },
-  { role: "ios-marketing", idiom: "ios-marketing", size: "1024x1024", scale: "1x", pixelSize: "1024x1024", file: "appstore.png" }
+const iosAssetCatalogSizes = [
+  16, 20, 29, 32, 40, 48, 50, 55, 57, 58, 60, 64, 66, 72, 76, 80, 87, 88, 92,
+  100, 102, 108, 114, 120, 128, 144, 152, 167, 172, 180, 196, 216, 234, 256,
+  258, 512, 1024
 ];
+
+function getIosImageSpecs() {
+  return iosAssetCatalogSizes.map((size) => ({
+    role: `ios-${size}`,
+    pixelSize: `${size}x${size}`,
+    file: `${size}.png`
+  }));
+}
+
+function buildContentsJson() {
+  return {
+    images: getIosImageSpecs().map((item) => ({
+      filename: item.file,
+      size: item.pixelSize
+    })),
+    info: {
+      author: "iconforge-studio",
+      version: 1
+    }
+  };
+}
 
 const masterIconSize = 2048;
 const editorReferenceSize = 280;
@@ -275,25 +277,6 @@ async function loadProjectAsset(project) {
   }
 }
 
-function buildContentsJson() {
-  return {
-    images: iosSizes
-      .filter((item) => item.idiom !== "ios-marketing")
-      .map((item) => ({
-        filename: item.file,
-        idiom: item.idiom,
-        scale: item.scale,
-        size: item.size,
-        role: item.role,
-        ...(item.subtype ? { subtype: item.subtype } : {})
-      })),
-    info: {
-      author: "iconforge-studio",
-      version: 1
-    }
-  };
-}
-
 function buildZipPath(...segments) {
   return segments.join("/");
 }
@@ -327,11 +310,10 @@ async function createArchiveEntries(project, platforms) {
   }
 
   if (platforms.includes("ios")) {
-    const marketingIcon = iosSizes.find((item) => item.idiom === "ios-marketing");
-    const assetCatalogIcons = iosSizes.filter((item) => item.idiom !== "ios-marketing");
+    const iosSpecs = getIosImageSpecs();
     const iosEntries = await Promise.all(
-      assetCatalogIcons.map(async (item) => ({
-        path: buildZipPath("ios", "AppIcon.appiconset", item.file),
+      iosSpecs.map(async (item) => ({
+        path: buildZipPath("Assets.xcassets", "AppIcon.appiconset", item.file),
         data: await renderOutputIcon(renderedIosMasterIcon, getOutputPixelSize(item.pixelSize)),
         options: {
           compression: "STORE"
@@ -341,18 +323,16 @@ async function createArchiveEntries(project, platforms) {
 
     entries.push(...iosEntries);
 
-    if (marketingIcon) {
-      entries.push({
-        path: marketingIcon.file,
-        data: await renderOutputIcon(renderedIosMasterIcon, getOutputPixelSize(marketingIcon.pixelSize)),
-        options: {
-          compression: "STORE"
-        }
-      });
-    }
+    entries.push({
+      path: "appstore.png",
+      data: await renderOutputIcon(renderedIosMasterIcon, 1024),
+      options: {
+        compression: "STORE"
+      }
+    });
 
     entries.push({
-      path: buildZipPath("ios", "AppIcon.appiconset", "Contents.json"),
+      path: buildZipPath("Assets.xcassets", "AppIcon.appiconset", "Contents.json"),
       data: JSON.stringify(buildContentsJson(), null, 2),
       options: {
         compression: "DEFLATE",
@@ -412,8 +392,9 @@ async function createExport(projectId, payload = {}, projectOverride = null) {
         : [],
       ios: platforms.includes("ios")
         ? [
-            ...iosSizes.map((item) => item.idiom === "ios-marketing" ? item.file : `AppIcon.appiconset/${item.file}`),
-            "AppIcon.appiconset/Contents.json"
+            "appstore.png",
+            ...getIosImageSpecs().map((item) => `Assets.xcassets/AppIcon.appiconset/${item.file}`),
+            "Assets.xcassets/AppIcon.appiconset/Contents.json"
           ]
         : []
     }
@@ -444,7 +425,7 @@ async function createExport(projectId, payload = {}, projectOverride = null) {
     platforms,
     manifest: {
       android: platforms.includes("android") ? androidSizes : [],
-      ios: platforms.includes("ios") ? iosSizes : []
+      ios: platforms.includes("ios") ? getIosImageSpecs() : []
     },
     files: exportRecord.files
   };

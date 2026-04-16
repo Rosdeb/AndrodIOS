@@ -497,6 +497,7 @@ input[type="range"],
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  gap: 10px;
   border: 0;
   border-radius: 999px;
   padding: 10px 14px;
@@ -540,6 +541,40 @@ input[type="range"],
 
 .button-gold {
   width: 100%;
+}
+
+.button-ios-spinner {
+  width: 15px;
+  height: 15px;
+  flex: 0 0 15px;
+  border-radius: 50%;
+  display: none;
+  background: conic-gradient(
+    from 0deg,
+    rgba(255, 255, 255, 0.12) 0deg,
+    rgba(255, 255, 255, 0.22) 70deg,
+    rgba(255, 255, 255, 0.48) 150deg,
+    rgba(255, 255, 255, 0.82) 245deg,
+    rgba(255, 255, 255, 1) 320deg,
+    rgba(255, 255, 255, 0.12) 360deg
+  );
+  -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 2.5px), #000 0);
+  mask: radial-gradient(farthest-side, transparent calc(100% - 2.5px), #000 0);
+  animation: ios-spinner-rotate 0.75s linear infinite;
+}
+
+.button.is-loading .button-ios-spinner {
+  display: inline-block;
+}
+
+.button.is-loading {
+  cursor: wait;
+}
+
+@keyframes ios-spinner-rotate {
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .action-stack,
