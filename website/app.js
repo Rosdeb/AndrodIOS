@@ -86,6 +86,9 @@ const elements = {
   variantLegacyText: document.querySelector("#variant-legacy-text"),
   apiStatus: document.querySelector("#api-status"),
   exportOutput: document.querySelector("#export-output"),
+  exportProgressPanel: document.querySelector("#export-progress-panel"),
+  exportPanelTitle: document.querySelector("[data-export-panel-title]"),
+  exportPanelCopy: document.querySelector("[data-export-panel-copy]"),
   saveProjectButton: document.querySelector("#save-project-button"),
   loadPreviewButton: document.querySelector("#load-preview-button"),
   exportButtons: [...document.querySelectorAll("[data-export-trigger]")],
@@ -366,6 +369,8 @@ function syncPlatformSelectionFromInputs() {
 
 function renderPlatformSelection() {
   const selected = new Set(state.selectedPlatforms);
+  const hasAsset = Boolean(state.assetDataUrl);
+  const canExport = hasSelectedPlatform() && hasAsset;
 
   elements.exportPlatformInputs.forEach((input) => {
     input.checked = selected.has(input.dataset.exportPlatform);
@@ -382,7 +387,7 @@ function renderPlatformSelection() {
     const defaultLabel = button.dataset.defaultLabel || label?.textContent?.trim() || "Generate Export Plan";
 
     button.dataset.defaultLabel = defaultLabel;
-    button.disabled = state.isExporting || !hasSelectedPlatform();
+    button.disabled = state.isExporting || !canExport;
     button.classList.toggle("is-loading", state.isExporting);
     button.setAttribute("aria-busy", state.isExporting ? "true" : "false");
 
@@ -390,6 +395,29 @@ function renderPlatformSelection() {
       label.textContent = state.isExporting ? "Generating..." : defaultLabel;
     }
   });
+
+  if (elements.exportProgressPanel && elements.exportOutput) {
+    elements.exportProgressPanel.hidden = !state.isExporting;
+    elements.exportOutput.hidden = state.isExporting;
+  }
+
+  if (elements.exportPanelTitle) {
+    elements.exportPanelTitle.textContent = state.isExporting ? "Generating Export Plan" : "Generate Export Plan";
+  }
+
+  if (elements.exportPanelCopy) {
+    if (state.isExporting) {
+      elements.exportPanelCopy.textContent = "Your uploaded image is being converted into the final export package.";
+    } else if (!hasAsset) {
+      elements.exportPanelCopy.textContent = "Export starts only after you upload an image.";
+    } else {
+      elements.exportPanelCopy.textContent = "Your image is ready. Click Generate Export Plan to download the package.";
+    }
+  }
+
+  if (elements.apiStatus) {
+    elements.apiStatus.classList.toggle("is-loading", state.isExporting);
+  }
 }
 
 function getTrackingHeaders() {
@@ -630,6 +658,9 @@ function render() {
   }
   updateColorChip('bg-chip', 'bg-hex', state.backgroundColor);
   updateColorChip('fg-chip', 'fg-hex', state.foregroundColor);
+  if (!state.assetDataUrl && !state.isExporting) {
+    setExportMessage('Upload an image to enable export, then click "Generate Export Plan".');
+  }
   renderPlatformSelection();
   updateIconStyles(elements.editorIcon, elements.editorIconText, state.shape || "rounded-square", "editor");
   updateIconStyles(elements.showcaseStoreIcon, elements.showcaseStoreText, state.shape || "rounded-square", "preview");
@@ -821,6 +852,15 @@ async function refreshPreview() {
 }
 
 async function generateExportPlan() {
+  if (!state.assetDataUrl) {
+    if (elements.apiStatus) {
+      elements.apiStatus.textContent = "Upload an image first, then generate the export package.";
+    }
+    setExportMessage('Upload an image to enable export, then click "Generate Export Plan".');
+    renderPlatformSelection();
+    return;
+  }
+
   if (!hasSelectedPlatform()) {
     if (elements.apiStatus) {
       elements.apiStatus.textContent = "Select at least one platform before generating the export.";

@@ -300,8 +300,9 @@
 
 
               <div style="margin-top: 8px;">
-                <button class="button button-primary button-gold" data-export-trigger="primary" type="button" style="width:100%;">
-                  Generate Export Plan
+                <button class="button button-primary button-gold" data-export-trigger="primary" type="button" style="width:100%;" aria-busy="false">
+                  <span class="button-ios-spinner" data-export-spinner aria-hidden="true"></span>
+                  <span data-export-label>Generate Export Plan</span>
                 </button>
               </div>
 
@@ -366,10 +367,15 @@
 
             <div class="panel code-panel">
               <div class="panel-heading">
-                <h3>Generated Export Plan</h3>
-                <p>The backend returns a zip attachment, and this panel shows what was generated before download.</p>
+                <h3 data-export-panel-title>Generate Export Plan</h3>
+                <p data-export-panel-copy>Upload your image, then generate the Android and iOS export package.</p>
               </div>
-              <pre id="export-output">Click "Generate Export Plan" to build Android and iOS packages, then download the zip automatically.</pre>
+              <div class="export-progress-panel" id="export-progress-panel" hidden>
+                <span class="export-progress-spinner" aria-hidden="true"></span>
+                <strong>Generating export package...</strong>
+                <p>Preparing icons, packaging files, and getting your download ready.</p>
+              </div>
+              <pre id="export-output">Upload an image to enable export, then click "Generate Export Plan".</pre>
             </div>
           </div>
         </section>

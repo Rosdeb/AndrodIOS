@@ -512,7 +512,7 @@ input[type="range"],
 }
 
 .button:disabled {
-  cursor: wait;
+  cursor: not-allowed;
   opacity: 0.72;
 }
 
@@ -544,23 +544,21 @@ input[type="range"],
 }
 
 .button-ios-spinner {
-  width: 15px;
-  height: 15px;
+  width: 16px;
+  height: 16px;
   flex: 0 0 15px;
-  border-radius: 50%;
   display: none;
-  background: conic-gradient(
-    from 0deg,
-    rgba(255, 255, 255, 0.12) 0deg,
-    rgba(255, 255, 255, 0.22) 70deg,
-    rgba(255, 255, 255, 0.48) 150deg,
-    rgba(255, 255, 255, 0.82) 245deg,
-    rgba(255, 255, 255, 1) 320deg,
-    rgba(255, 255, 255, 0.12) 360deg
-  );
-  -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 2.5px), #000 0);
-  mask: radial-gradient(farthest-side, transparent calc(100% - 2.5px), #000 0);
-  animation: ios-spinner-rotate 0.75s linear infinite;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 50% 14%, rgba(255, 255, 255, 1) 0 12%, transparent 13%),
+    radial-gradient(circle at 77% 23%, rgba(255, 255, 255, 0.92) 0 12%, transparent 13%),
+    radial-gradient(circle at 86% 50%, rgba(255, 255, 255, 0.82) 0 12%, transparent 13%),
+    radial-gradient(circle at 77% 77%, rgba(255, 255, 255, 0.7) 0 12%, transparent 13%),
+    radial-gradient(circle at 50% 86%, rgba(255, 255, 255, 0.58) 0 12%, transparent 13%),
+    radial-gradient(circle at 23% 77%, rgba(255, 255, 255, 0.46) 0 12%, transparent 13%),
+    radial-gradient(circle at 14% 50%, rgba(255, 255, 255, 0.34) 0 12%, transparent 13%),
+    radial-gradient(circle at 23% 23%, rgba(255, 255, 255, 0.22) 0 12%, transparent 13%);
+  animation: ios-spinner-rotate 0.85s linear infinite;
 }
 
 .button.is-loading .button-ios-spinner {
@@ -1129,11 +1127,78 @@ input[type="range"],
   font-size: 0.8rem;
 }
 
+.api-status {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.api-status.is-loading::before {
+  content: "";
+  width: 18px;
+  height: 18px;
+  flex: 0 0 18px;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 50% 14%, rgba(29, 38, 56, 1) 0 12%, transparent 13%),
+    radial-gradient(circle at 77% 23%, rgba(29, 38, 56, 0.9) 0 12%, transparent 13%),
+    radial-gradient(circle at 86% 50%, rgba(29, 38, 56, 0.78) 0 12%, transparent 13%),
+    radial-gradient(circle at 77% 77%, rgba(29, 38, 56, 0.64) 0 12%, transparent 13%),
+    radial-gradient(circle at 50% 86%, rgba(29, 38, 56, 0.5) 0 12%, transparent 13%),
+    radial-gradient(circle at 23% 77%, rgba(29, 38, 56, 0.36) 0 12%, transparent 13%),
+    radial-gradient(circle at 14% 50%, rgba(29, 38, 56, 0.24) 0 12%, transparent 13%),
+    radial-gradient(circle at 23% 23%, rgba(29, 38, 56, 0.14) 0 12%, transparent 13%);
+  animation: ios-spinner-rotate 0.85s linear infinite;
+}
+
 #export-output {
   min-height: 320px;
   overflow: auto;
   white-space: pre-wrap;
   line-height: 1.6;
+}
+
+.export-progress-panel {
+  min-height: 320px;
+  margin-top: 12px;
+  padding: 28px 20px;
+  border-radius: 18px;
+  border: 1px solid #c8d1dc;
+  background: linear-gradient(180deg, #eef2f7 0%, #e5eaf1 100%);
+  display: grid;
+  place-items: center;
+  text-align: center;
+  gap: 12px;
+}
+
+.export-progress-panel strong {
+  font-size: 1rem;
+  color: var(--ink);
+}
+
+.export-progress-panel p {
+  margin: 0;
+  max-width: 260px;
+  font-size: 0.84rem;
+  line-height: 1.6;
+  color: var(--ink-muted);
+}
+
+.export-progress-spinner {
+  width: 92px;
+  height: 92px;
+  border-radius: 50%;
+  background:
+    linear-gradient(180deg, rgba(122, 128, 137, 1) 0%, rgba(122, 128, 137, 1) 100%) 50% 7% / 14px 38px no-repeat,
+    linear-gradient(180deg, rgba(145, 150, 158, 0.94) 0%, rgba(145, 150, 158, 0.94) 100%) 76% 19% / 14px 38px no-repeat,
+    linear-gradient(180deg, rgba(172, 176, 184, 0.82) 0%, rgba(172, 176, 184, 0.82) 100%) 90% 50% / 14px 38px no-repeat,
+    linear-gradient(180deg, rgba(194, 198, 204, 0.68) 0%, rgba(194, 198, 204, 0.68) 100%) 76% 81% / 14px 38px no-repeat,
+    linear-gradient(180deg, rgba(212, 215, 220, 0.54) 0%, rgba(212, 215, 220, 0.54) 100%) 50% 93% / 14px 38px no-repeat,
+    linear-gradient(180deg, rgba(225, 227, 231, 0.4) 0%, rgba(225, 227, 231, 0.4) 100%) 24% 81% / 14px 38px no-repeat,
+    linear-gradient(180deg, rgba(235, 237, 240, 0.3) 0%, rgba(235, 237, 240, 0.3) 100%) 10% 50% / 14px 38px no-repeat,
+    linear-gradient(180deg, rgba(242, 244, 246, 0.22) 0%, rgba(242, 244, 246, 0.22) 100%) 24% 19% / 14px 38px no-repeat;
+  animation: ios-spinner-rotate 0.9s linear infinite;
+  transform-origin: center;
 }
 
 .export-layout {
