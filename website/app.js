@@ -31,7 +31,7 @@ const state = {
   backgroundColor: "#ffffff",
   foregroundColor: "#1a2130",
   shape: "rounded-square",
-  zoom: 0.8,
+  zoom: 1,
   padding: 18,
   assetDataUrl: null,
   assetName: "",
@@ -645,6 +645,12 @@ function render() {
   }
   if (elements.shape) {
     elements.shape.value = state.shape;
+  }
+  if (elements.zoom) {
+    elements.zoom.value = String(state.zoom);
+  }
+  if (elements.padding) {
+    elements.padding.value = String(state.padding);
   }
   if (elements.blendBgCheckbox) {
     elements.blendBgCheckbox.checked = state.blendWhiteBackground;

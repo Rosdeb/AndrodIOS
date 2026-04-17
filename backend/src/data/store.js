@@ -15,7 +15,7 @@ const projects = [
       foregroundColor: "#ffffff",
       backgroundColor: "#ffffff",
       gradient: null,
-      zoom: 1.1,
+      zoom: 1,
       padding: 18,
       blendWhiteBackground: false,
       positionX: 0,
