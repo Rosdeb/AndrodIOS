@@ -23,17 +23,31 @@ const androidSizes = [
   { folder: "play-store", size: "512x512", file: "playstore.png" }
 ];
 
-const iosAssetCatalogSizes = [
-  16, 20, 29, 32, 40, 48, 50, 55, 57, 58, 60, 64, 66, 72, 76, 80, 87, 88, 92,
-  100, 102, 108, 114, 120, 128, 144, 152, 167, 172, 180, 196, 216, 234, 256,
-  258, 512, 1024
+const iosAppIconSpecs = [
+  { idiom: "iphone", size: "20x20", scale: "2x", file: "iphone-notification-20@2x.png" },
+  { idiom: "iphone", size: "20x20", scale: "3x", file: "iphone-notification-20@3x.png" },
+  { idiom: "iphone", size: "29x29", scale: "2x", file: "iphone-settings-29@2x.png" },
+  { idiom: "iphone", size: "29x29", scale: "3x", file: "iphone-settings-29@3x.png" },
+  { idiom: "iphone", size: "40x40", scale: "2x", file: "iphone-spotlight-40@2x.png" },
+  { idiom: "iphone", size: "40x40", scale: "3x", file: "iphone-spotlight-40@3x.png" },
+  { idiom: "iphone", size: "60x60", scale: "2x", file: "iphone-app-60@2x.png" },
+  { idiom: "iphone", size: "60x60", scale: "3x", file: "iphone-app-60@3x.png" },
+  { idiom: "ipad", size: "20x20", scale: "1x", file: "ipad-notifications-20@1x.png" },
+  { idiom: "ipad", size: "20x20", scale: "2x", file: "ipad-notifications-20@2x.png" },
+  { idiom: "ipad", size: "29x29", scale: "1x", file: "ipad-settings-29@1x.png" },
+  { idiom: "ipad", size: "29x29", scale: "2x", file: "ipad-settings-29@2x.png" },
+  { idiom: "ipad", size: "40x40", scale: "1x", file: "ipad-spotlight-40@1x.png" },
+  { idiom: "ipad", size: "40x40", scale: "2x", file: "ipad-spotlight-40@2x.png" },
+  { idiom: "ipad", size: "76x76", scale: "1x", file: "ipad-app-76@1x.png" },
+  { idiom: "ipad", size: "76x76", scale: "2x", file: "ipad-app-76@2x.png" },
+  { idiom: "ipad", size: "83.5x83.5", scale: "2x", file: "ipad-pro-83.5@2x.png" },
+  { idiom: "ios-marketing", size: "1024x1024", scale: "1x", file: "ios-marketing-1024@1x.png" }
 ];
 
 function getIosImageSpecs() {
-  return iosAssetCatalogSizes.map((size) => ({
-    role: `ios-${size}`,
-    pixelSize: `${size}x${size}`,
-    file: `${size}.png`
+  return iosAppIconSpecs.map((item) => ({
+    ...item,
+    pixelSize: getOutputPixelSize(item.size, item.scale)
   }));
 }
 
@@ -41,7 +55,9 @@ function buildContentsJson() {
   return {
     images: getIosImageSpecs().map((item) => ({
       filename: item.file,
-      size: item.pixelSize
+      idiom: item.idiom,
+      scale: item.scale,
+      size: item.size
     })),
     info: {
       author: "iconforge-studio",
@@ -103,8 +119,11 @@ function escapeXml(value) {
     .replace(/'/g, "&apos;");
 }
 
-function getOutputPixelSize(sizeLabel) {
-  return Math.round(Number(String(sizeLabel).split("x")[0]));
+function getOutputPixelSize(sizeLabel, scaleLabel = "1x") {
+  const baseSize = Number(String(sizeLabel).split("x")[0]);
+  const scale = Number(String(scaleLabel).replace("x", "")) || 1;
+
+  return Math.round(baseSize * scale);
 }
 
 function getArtworkScale(project) {
@@ -314,7 +333,7 @@ async function createArchiveEntries(project, platforms) {
     const iosEntries = await Promise.all(
       iosSpecs.map(async (item) => ({
         path: buildZipPath("Assets.xcassets", "AppIcon.appiconset", item.file),
-        data: await renderOutputIcon(renderedIosMasterIcon, getOutputPixelSize(item.pixelSize)),
+        data: await renderOutputIcon(renderedIosMasterIcon, item.pixelSize),
         options: {
           compression: "STORE"
         }

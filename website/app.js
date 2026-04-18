@@ -44,7 +44,7 @@ const state = {
 
 const EXPORT_COUNTS = {
   android: 6,
-  ios: 37
+  iosImages: 19
 };
 
 const elements = {
@@ -130,7 +130,7 @@ function buildExportSummary(fileName, platforms) {
     `File: ${fileName}`,
     `Platforms: ${platformLabel}`,
     `Android outputs: ${includesAndroid ? `${EXPORT_COUNTS.android} files` : "Not included"}`,
-    `iOS outputs: ${includesIos ? `${EXPORT_COUNTS.ios} image files` : "Not included"}`,
+    `iOS outputs: ${includesIos ? `${EXPORT_COUNTS.iosImages} image files + Contents.json` : "Not included"}`,
     `iOS folder: ${includesIos ? "Assets.xcassets/AppIcon.appiconset" : "Not included"}`,
     `Icon label: ${getCurrentIconText() || "Image asset"}`,
     `Shape: ${describeShape(state.shape)}`,
