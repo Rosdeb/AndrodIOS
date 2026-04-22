@@ -16,6 +16,10 @@
       "destination": "/admin/index.html"
     },
     {
+      "source": "/privacy-policy",
+      "destination": "/privacy-policy.html"
+    },
+    {
       "source": "/",
       "destination": "/website/index.html"
     }
