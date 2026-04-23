@@ -1327,11 +1327,12 @@ input[type="range"],
 .export-layout {
   grid-template-columns: 1.2fr 1fr;
   align-items: start;
-  gap: 12px;
+  gap: 16px;
 }
 
 .manifest-columns {
   grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
 }
 
 .size-list {
@@ -1347,41 +1348,278 @@ input[type="range"],
   align-items: center;
   justify-content: space-between;
   gap: 14px;
-  padding: 10px 12px;
-  border-radius: 14px;
-  background: linear-gradient(180deg, #eef2f6 0%, #dde4ec 100%);
-  border: 1px solid #c8d1dc;
-  color: var(--ink);
+  padding: 8px 10px;
+  border-radius: 12px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(243, 247, 252, 0.98));
+  border: 1px solid rgba(125, 169, 214, 0.16);
+  color: #1a2130;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.92),
+    0 10px 22px rgba(12, 24, 45, 0.06);
+}
+
+.export-section {
+  position: relative;
+  margin-top: 18px;
+  padding: 26px 24px 30px;
+  border-radius: 32px;
+  background: #ffffff;
+  border: 0;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.04),
+    0 24px 60px rgba(12, 24, 45, 0.1);
+  overflow: hidden;
+}
+
+.export-section::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(rgba(120, 158, 198, 0.08) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(120, 158, 198, 0.08) 1px, transparent 1px);
+  background-size: 32px 32px;
+  mask-image: radial-gradient(circle at center, black 38%, transparent 100%);
+  pointer-events: none;
+  opacity: 0.12;
+}
+
+.export-section > * {
+  position: relative;
+  z-index: 1;
 }
 
 .export-section .panel {
-  background: var(--panel-light);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.96) 0%, rgba(247, 250, 253, 0.98) 100%);
   color: var(--ink);
-  border-color: #cbd4df;
-  backdrop-filter: none;
-  box-shadow: 0 24px 44px rgba(3, 15, 31, 0.22);
+  border-color: rgba(125, 169, 214, 0.16);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.88),
+    0 0 0 1px rgba(187, 106, 255, 0.04),
+    0 18px 44px rgba(12, 24, 45, 0.1);
 }
 
 .export-section .button-gold {
-  width: fit-content;
-  min-width: 220px;
-  align-self: flex-start;
+  width: 100%;
+  min-width: 0;
+  align-self: stretch;
+  min-height: 42px;
+  padding: 10px 16px;
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #effbff;
+  background:
+    linear-gradient(180deg, #0c8fe8 0%, #0b67bf 48%, #094d95 100%);
+  border: 1px solid rgba(118, 216, 255, 0.32);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.18),
+    0 0 0 1px rgba(8, 165, 255, 0.12),
+    0 12px 28px rgba(0, 92, 166, 0.34);
 }
 
 .export-section .panel::before {
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.8), rgba(255, 255, 255, 0));
+  background: linear-gradient(180deg, rgba(102, 217, 255, 0.1), rgba(255, 255, 255, 0));
+}
+
+.export-section .simple-heading {
+  margin-bottom: 14px;
+}
+
+.export-section .simple-heading h2 {
+  margin-bottom: 6px;
+  color: #1a2130;
+  letter-spacing: -0.05em;
 }
 
 .export-section .panel-heading p,
 .export-section .manifest-header p,
 .export-section .size-list span {
-  color: var(--ink-muted);
+  color: #5e6878;
+}
+
+.export-section .simple-heading p {
+  color: #5e6878;
+}
+
+.export-section .manifest-header,
+.export-section .panel-heading {
+  display: grid;
+  gap: 4px 12px;
+}
+
+.export-section .manifest-header {
+  grid-template-columns: 1fr auto;
+  align-items: start;
+  margin-bottom: 14px;
+}
+
+.export-section .manifest-header .button-gold {
+  grid-column: 1 / -1;
+  margin-top: 2px;
+}
+
+.export-section .manifest-header h3,
+.export-section .code-panel .panel-heading h3,
+.export-section .manifest-columns h4 {
+  color: #1a2130;
+}
+
+.export-section .manifest-header h3,
+.export-section .code-panel .panel-heading h3 {
+  font-size: 1rem;
+  letter-spacing: -0.03em;
+}
+
+.export-section .manifest-columns h4 {
+  margin-bottom: 8px;
+  font-size: 0.9rem;
+  letter-spacing: 0.02em;
+}
+
+.export-section .manifest-columns > div {
+  padding: 10px;
+  border-radius: 18px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.03), rgba(255, 255, 255, 0.01));
+  border: 1px solid rgba(130, 171, 216, 0.1);
+}
+
+.export-section .size-list strong {
+  color: #1a2130;
+  font-weight: 700;
+}
+
+.export-section .export-platform-selector {
+  gap: 8px;
+ }
+
+.export-section .export-platform-option {
+  padding: 6px 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(137, 185, 231, 0.18);
+  background: rgba(9, 14, 24, 0.68);
+  color: #d8eaff;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
+}
+
+.export-section .export-platform-option:hover {
+  border-color: rgba(116, 220, 255, 0.34);
+  background: rgba(13, 22, 34, 0.9);
+}
+
+.export-section .export-platform-check {
+  width: 14px;
+  height: 14px;
+  border-radius: 999px;
+  border-width: 1px;
+  border-color: rgba(130, 173, 221, 0.42);
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.export-section .export-platform-check::after {
+  left: 4px;
+  top: 0;
+  width: 4px;
+  height: 8px;
+}
+
+.export-section .export-platform-option input:checked + .export-platform-check {
+  background: linear-gradient(180deg, #4fe6ff 0%, #16bfff 100%);
+  border-color: rgba(120, 241, 255, 0.9);
+  box-shadow: 0 0 14px rgba(79, 230, 255, 0.38);
+}
+
+.export-section .api-status,
+.export-section #export-output {
+  margin-top: 10px;
+  border-radius: 18px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.98) 0%, rgba(243, 247, 252, 0.98) 100%);
+  border: 1px solid rgba(125, 169, 214, 0.16);
+  color: #1a2130;
 }
 
 .export-section #export-output {
-  background: linear-gradient(180deg, #eef2f7 0%, #e5eaf1 100%);
-  border: 1px solid #c8d1dc;
-  color: var(--ink);
+  min-height: 186px;
+  font-size: 0.76rem;
+  line-height: 1.7;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.92),
+    0 12px 28px rgba(12, 24, 45, 0.06);
+}
+
+.export-section .export-progress-panel {
+  min-height: 220px;
+  margin-top: 10px;
+  padding: 24px 18px;
+  border-radius: 20px;
+  border: 1px solid rgba(125, 169, 214, 0.16);
+  background:
+    radial-gradient(circle at 50% 0%, rgba(112, 224, 255, 0.06), transparent 32%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.98) 0%, rgba(243, 247, 252, 0.98) 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.92),
+    0 12px 28px rgba(12, 24, 45, 0.06);
+}
+
+.export-section .export-progress-panel strong {
+  color: #1a2130;
+  font-size: 1.05rem;
+}
+
+.export-section .export-progress-panel p {
+  color: #5e6878;
+}
+
+.export-section .export-progress-spinner {
+  width: 82px;
+  height: 82px;
+  border-radius: 18px;
+  background:
+    linear-gradient(135deg, rgba(191, 110, 255, 0.62), rgba(90, 221, 255, 0.8)),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.16), rgba(255, 255, 255, 0));
+  position: relative;
+  transform: rotate(12deg);
+  box-shadow:
+    0 0 0 1px rgba(185, 231, 255, 0.2),
+    0 18px 30px rgba(0, 0, 0, 0.28),
+    0 0 24px rgba(99, 214, 255, 0.18);
+  animation: export-stack-float 2.8s ease-in-out infinite;
+}
+
+.export-section .export-progress-spinner::before,
+.export-section .export-progress-spinner::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 18px;
+  background: inherit;
+  border: 1px solid rgba(185, 231, 255, 0.14);
+  z-index: -1;
+}
+
+.export-section .export-progress-spinner::before {
+  transform: translate(10px, -10px);
+  opacity: 0.68;
+}
+
+.export-section .export-progress-spinner::after {
+  transform: translate(18px, -18px);
+  opacity: 0.4;
+}
+
+@keyframes export-stack-float {
+  0%,
+  100% {
+    transform: rotate(12deg) translateY(0);
+  }
+
+  50% {
+    transform: rotate(12deg) translateY(-6px);
+  }
 }
 
 .showcase-section,
