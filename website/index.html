@@ -4,9 +4,8 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Appicon Studio</title>
-    <meta name="description" content="Appicon Studio — Professional app icon workshop for iOS and Android. Generate every required icon size instantly." />
+    <meta name="description" content="Free App Icon Generator for iOS and Android. Upload your image and instantly generate all required app icon sizes for mobile apps." />
     <meta name="theme-color" content="#7b9ef0" />
-
     <!-- Favicon & Site Icons -->
     <link rel="icon" href="/website/assets/icons/favicon.ico" sizes="any" />
     <link rel="icon" href="/website/assets/icons/favicon-32x32.png" type="image/png" sizes="32x32" />
@@ -57,7 +56,17 @@
           <div class="editor-layout">
             <aside class="panel controls-panel">
               <div class="dropzone-field">
-                <span class="dropzone-label">Upload & Customize</span>
+                <div class="dropzone-header">
+                  <span class="dropzone-header-icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M8 7h8"></path>
+                      <path d="M8 11h8"></path>
+                      <path d="M8 15h5"></path>
+                      <rect x="5" y="4" width="14" height="16" rx="2"></rect>
+                    </svg>
+                  </span>
+                  <span class="dropzone-label">Upload &amp; Customize</span>
+                </div>
                 <div class="dropzone-area" id="dropzone-area">
                   <input id="asset-upload" type="file" accept=".png,.jpg,.jpeg,.svg,.webp" />
                   <div class="dropzone-icon">
@@ -74,13 +83,13 @@
                 </div>
                 
                 <div class="upload-meta-row">
-                  <div class="upload-meta" id="upload-meta" style="font-size:0.85rem; color:#5e6878;">No asset selected</div>
-                  <button class="button button-secondary button-compact" id="clear-upload-button" type="button" hidden style="padding:4px 8px; font-size:0.8rem; min-height:0;">Remove</button>
+                  <div class="upload-meta" id="upload-meta">No asset selected</div>
+                  <button class="button button-secondary button-compact" id="clear-upload-button" type="button" hidden>Remove</button>
                 </div>
                 
-                <div style="display:flex; align-items:center; gap:8px; margin-top:2px;">
-                  <input type="checkbox" id="blend-bg-checkbox" style="width:auto; padding:0; margin:0;">
-                  <label for="blend-bg-checkbox" style="font-size:0.85rem; color:var(--ink);">Blend white background</label>
+                <div class="blend-toggle-row">
+                  <input type="checkbox" id="blend-bg-checkbox">
+                  <label for="blend-bg-checkbox">Blend white background</label>
                 </div>
               </div>
 
@@ -371,45 +380,56 @@
       
         <section class="about-section" id="about">
           <div class="section-heading simple-heading">
-            <h3>About Appicon Studio</h3>
-            <p>Built for teams that want a faster way to move from logo asset to export-ready app icon package.</p>
+            <h3>What You Get</h3>
+            <p>Three simple tools to move from upload to export-ready app icons faster.</p>
           </div>
 
           <div class="about-layout">
-            <article class="panel about-story-card">
-              <span class="eyebrow">About The Product</span>
-              <h3>A small icon workflow with a full product mindset</h3>
-              <p>Appicon Studio is designed for founders, designers, and mobile teams who need a practical way to shape an app icon, preview it in context, and export the required Apple and Android assets without building every file by hand.</p>
-              <p>The studio keeps the workflow simple: upload, refine, preview, and export. The goal is to help you judge the icon as a product surface, not only as a square image.</p>
+            <article class="about-feature-card">
+              <span class="about-feature-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M8 7h8"></path>
+                  <path d="M8 12h5"></path>
+                  <path d="M8 17h3"></path>
+                  <path d="M16 15l3 3 4-6"></path>
+                </svg>
+              </span>
+              <h4>Live Studio Editing</h4>
+              <p>Adjust gradients, padding, zoom, and safe-zone spacing with instant visual feedback while you work.</p>
             </article>
 
-            <article class="panel about-features-card">
-              <span class="eyebrow">What You Get</span>
-              <div class="about-feature-list">
-                <div class="about-feature-item">
-                  <strong>Live Studio Editing</strong>
-                  <p>Adjust icon text, colors, shape, zoom, and padding with instant visual feedback.</p>
-                </div>
-                <div class="about-feature-item">
-                  <strong>Device & Store Preview</strong>
-                  <p>Review the icon on an iPhone-style screen and in larger promotional surfaces before export.</p>
-                </div>
-                <div class="about-feature-item">
-                  <strong>Clean Export Package</strong>
-                  <p>Download Android sizes, iOS app icons, and store graphics with a simpler package structure.</p>
-                </div>
-              </div>
+            <article class="about-feature-card">
+              <span class="about-feature-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="5" y="6" width="14" height="12" rx="2"></rect>
+                  <path d="M9 18v1"></path>
+                  <path d="M15 18v1"></path>
+                  <path d="M10 11h4"></path>
+                </svg>
+              </span>
+              <h4>Device &amp; Store Preview</h4>
+              <p>Instantly see how your icon looks on iOS, Android, and in the app store context before exporting.</p>
+            </article>
+
+            <article class="about-feature-card">
+              <span class="about-feature-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M7 8h10"></path>
+                  <path d="M7 12h10"></path>
+                  <path d="M9 16h6"></path>
+                  <rect x="5" y="4" width="14" height="16" rx="2"></rect>
+                </svg>
+              </span>
+              <h4>Clean Export Package</h4>
+              <p>A structured ZIP containing all required icon sizes, neatly organized for direct project import.</p>
             </article>
           </div>
         </section>
       </main>
 
       <footer class="site-footer">
-        <p>Appicon Studio helps teams generate Android and iOS app icon exports faster.</p>
-        <div class="site-footer-links">
-          <a href="/privacy-policy">Privacy Policy</a>
-          <a href="/sitemap.xml">Sitemap</a>
-        </div>
+        <p>&copy; 2026 Pilach. @Developed by Rosdeb Koch</p
+          >
       </footer>
     </div>
 
