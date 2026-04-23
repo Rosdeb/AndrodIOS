@@ -207,33 +207,12 @@ async function createExport(req, res, next) {
     if (!project) {
       throw createHttpError(400, "Project data is required to generate an export");
     }
+    const exportResult = await exportService.createExport(project.id, req.body, project);
 
-    void trackEventSafely({
-      type: "export_started",
-      ...normalizeTrackingContext(req, {
-        projectId: project.id,
-        platform:
-          Array.isArray(req.body?.platforms) && req.body.platforms.length === 2
-            ? "android-ios"
-            : req.body?.platform ||
-              req.body?.platforms?.[0] ||
-              "web",
-        metadata: {
-          exportTarget:
-            Array.isArray(req.body?.platforms) && req.body.platforms.length === 2
-              ? "both"
-              : req.body?.platforms?.[0] || req.body?.platform || "web"
-        }
-      })
+    res.status(201).json({
+      project,
+      export: exportResult
     });
-
-    const exportResult = await exportService.createExportArchiveForProject(project, req.body);
-
-    res.setHeader("Content-Type", "application/zip");
-    res.setHeader("Content-Disposition", `attachment; filename="${exportResult.packageName}"`);
-    res.setHeader("X-Export-Id", exportResult.exportId);
-    res.setHeader("X-Project-Id", exportResult.projectId);
-    res.status(201).send(exportResult.zipBuffer);
   } catch (error) {
     next(error);
   }

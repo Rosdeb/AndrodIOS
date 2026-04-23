@@ -1,8 +1,10 @@
 const defaultAssetPath = "/website/assets/icons/app-builder-icon.png";
+const defaultProjectName = "AppIcon";
+const defaultExportFileName = "appicon";
 const maxIconTextLength = 3;
 const maxUploadSizeBytes = 10 * 1024 * 1024;
 const sessionTimeoutMs = 30 * 60 * 1000;
-const minimumExportLoadingMs = 700;
+const minimumExportLoadingMs = 0;
 
 const regionDisplayNames = typeof Intl.DisplayNames === "function"
   ? new Intl.DisplayNames(["en"], { type: "region" })
@@ -25,8 +27,8 @@ const state = {
   projectId: null,
   sessionId: "",
   sessionLastSeenAt: 0,
-  projectName: "AppIcon",
-  exportFileName: "Appicon",
+  projectName: defaultProjectName,
+  exportFileName: defaultExportFileName,
   selectedPlatforms: ["android", "ios"],
   backgroundColor: "#ffffff",
   foregroundColor: "#1a2130",
@@ -47,11 +49,42 @@ const EXPORT_COUNTS = {
   iosImages: 19
 };
 
+const exportZipLibrary = window.JSZip;
+const androidExportSpecs = [
+  { folder: "mipmap-mdpi", size: "48x48", file: "ic_launcher.png" },
+  { folder: "mipmap-hdpi", size: "72x72", file: "ic_launcher.png" },
+  { folder: "mipmap-xhdpi", size: "96x96", file: "ic_launcher.png" },
+  { folder: "mipmap-xxhdpi", size: "144x144", file: "ic_launcher.png" },
+  { folder: "mipmap-xxxhdpi", size: "192x192", file: "ic_launcher.png" },
+  { folder: "play-store", size: "512x512", file: "playstore.png" }
+];
+const iosExportSpecs = [
+  { idiom: "iphone", size: "20x20", scale: "2x", file: "iphone-notification-20@2x.png" },
+  { idiom: "iphone", size: "20x20", scale: "3x", file: "iphone-notification-20@3x.png" },
+  { idiom: "iphone", size: "29x29", scale: "2x", file: "iphone-settings-29@2x.png" },
+  { idiom: "iphone", size: "29x29", scale: "3x", file: "iphone-settings-29@3x.png" },
+  { idiom: "iphone", size: "40x40", scale: "2x", file: "iphone-spotlight-40@2x.png" },
+  { idiom: "iphone", size: "40x40", scale: "3x", file: "iphone-spotlight-40@3x.png" },
+  { idiom: "iphone", size: "60x60", scale: "2x", file: "iphone-app-60@2x.png" },
+  { idiom: "iphone", size: "60x60", scale: "3x", file: "iphone-app-60@3x.png" },
+  { idiom: "ipad", size: "20x20", scale: "1x", file: "ipad-notifications-20@1x.png" },
+  { idiom: "ipad", size: "20x20", scale: "2x", file: "ipad-notifications-20@2x.png" },
+  { idiom: "ipad", size: "29x29", scale: "1x", file: "ipad-settings-29@1x.png" },
+  { idiom: "ipad", size: "29x29", scale: "2x", file: "ipad-settings-29@2x.png" },
+  { idiom: "ipad", size: "40x40", scale: "1x", file: "ipad-spotlight-40@1x.png" },
+  { idiom: "ipad", size: "40x40", scale: "2x", file: "ipad-spotlight-40@2x.png" },
+  { idiom: "ipad", size: "76x76", scale: "1x", file: "ipad-app-76@1x.png" },
+  { idiom: "ipad", size: "76x76", scale: "2x", file: "ipad-app-76@2x.png" },
+  { idiom: "ipad", size: "83.5x83.5", scale: "2x", file: "ipad-pro-83.5@2x.png" },
+  { idiom: "ios-marketing", size: "1024x1024", scale: "1x", file: "ios-marketing-1024@1x.png" }
+];
+const masterIconSize = 1024;
+const editorReferenceSize = 280;
+const iosArtworkScaleMultiplier = 0.75;
+
 const elements = {
-  projectName: document.querySelector("#project-name"),
   bgColor: document.querySelector("#bg-color"),
   fgColor: document.querySelector("#fg-color"),
-  exportFileName: document.querySelector("#android-filename"),
   shape: document.querySelector("#shape-select"),
   zoom: document.querySelector("#zoom-range"),
   zoomOutput: document.querySelector("#zoom-output"),
@@ -126,7 +159,6 @@ function buildExportSummary(fileName, platforms) {
 
   return [
     "Export package generated",
-    `Project: ${resolveProjectName(state.projectName)}`,
     `File: ${fileName}`,
     `Platforms: ${platformLabel}`,
     `Android outputs: ${includesAndroid ? `${EXPORT_COUNTS.android} files` : "Not included"}`,
@@ -186,6 +218,35 @@ function delay(ms) {
   });
 }
 
+function getOutputPixelSize(sizeLabel, scaleLabel = "1x") {
+  const baseSize = Number(String(sizeLabel).split("x")[0]);
+  const scale = Number(String(scaleLabel).replace("x", "")) || 1;
+
+  return Math.round(baseSize * scale);
+}
+
+function getIosImageSpecs() {
+  return iosExportSpecs.map((item) => ({
+    ...item,
+    pixelSize: getOutputPixelSize(item.size, item.scale)
+  }));
+}
+
+function buildIosContentsJson() {
+  return {
+    images: getIosImageSpecs().map((item) => ({
+      filename: item.file,
+      idiom: item.idiom,
+      scale: item.scale,
+      size: item.size
+    })),
+    info: {
+      author: "iconforge-studio",
+      version: 1
+    }
+  };
+}
+
 function deriveIconText(value) {
   return String(value ?? "")
     .trim()
@@ -194,17 +255,12 @@ function deriveIconText(value) {
 }
 
 function resolveProjectName(value) {
-  return value.trim() || "Untitled App";
+  const normalized = String(value ?? "").trim();
+  return normalized || defaultProjectName;
 }
 
-function resolveExportFileName(value) {
-  const normalized = String(value ?? "")
-    .trim()
-    .replace(/\.zip$/i, "")
-    .replace(/[^a-zA-Z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "");
-
-  return normalized || "Appicon";
+function resolveExportFileName() {
+  return defaultExportFileName;
 }
 
 function createSessionId() {
@@ -458,6 +514,243 @@ function clampNumber(value, min, max) {
   return Math.min(Math.max(value, min), max);
 }
 
+function getArtworkScale(project) {
+  const padding = Number(project.icon.padding ?? 18);
+  const zoom = Number(project.icon.zoom ?? 1);
+  const basePercent = 96 - Math.min(24, padding * 0.55);
+
+  return clampNumber((Math.max(76, basePercent) / 100) * zoom, 0.28, 1.6);
+}
+
+function getContainedArtworkScale(project, scaleMultiplier = 1) {
+  const padding = Number(project.icon.padding ?? 18);
+  const zoom = Number(project.icon.zoom ?? 1);
+  const baseScale = getArtworkScale(project) * scaleMultiplier;
+  const paddingBias = clampNumber((padding - 18) * 0.004, -0.04, 0.06);
+  const zoomBias = clampNumber((zoom - 1) * 0.18, -0.08, 0.1);
+  const safeScale = clampNumber(0.62 + paddingBias + zoomBias, 0.5, 0.76);
+
+  return Math.min(baseScale, safeScale);
+}
+
+function getArtworkOffset(project, size) {
+  const x = Number(project.icon.positionX ?? 0);
+  const y = Number(project.icon.positionY ?? 0);
+  const ratio = size / editorReferenceSize;
+
+  return {
+    x: Math.round(x * ratio),
+    y: Math.round(y * ratio)
+  };
+}
+
+function createRenderCanvas(width, height = width) {
+  const canvas = document.createElement("canvas");
+  canvas.width = width;
+  canvas.height = height;
+  return canvas;
+}
+
+function configureCanvasContext(context) {
+  context.imageSmoothingEnabled = true;
+  context.imageSmoothingQuality = "high";
+}
+
+function canvasToBlob(canvas, type = "image/png", quality) {
+  return new Promise((resolve, reject) => {
+    canvas.toBlob((blob) => {
+      if (blob) {
+        resolve(blob);
+        return;
+      }
+
+      reject(new Error("Unable to prepare the export image"));
+    }, type, quality);
+  });
+}
+
+function loadImageSource(source) {
+  return new Promise((resolve, reject) => {
+    const image = new Image();
+    image.decoding = "async";
+    image.onload = () => resolve(image);
+    image.onerror = () => reject(new Error("Unable to load the uploaded image for export."));
+    image.src = source;
+  });
+}
+
+function getTextOverlayFontSize(text, size, scaleMultiplier = 1) {
+  const value = String(text ?? "");
+  const baseFontSize = value.length >= 3
+    ? Math.round(size * 0.27)
+    : value.length === 2
+      ? Math.round(size * 0.34)
+      : Math.round(size * 0.5);
+
+  return Math.max(1, Math.round(baseFontSize * scaleMultiplier));
+}
+
+function renderMasterIconCanvas(project, sourceImage, options = {}) {
+  const scaleMultiplier = options.scaleMultiplier ?? 1;
+  const canvas = createRenderCanvas(masterIconSize);
+  const context = canvas.getContext("2d");
+
+  if (!context) {
+    throw new Error("Canvas rendering is not available in this browser.");
+  }
+
+  configureCanvasContext(context);
+  context.clearRect(0, 0, masterIconSize, masterIconSize);
+  context.fillStyle = project.icon.backgroundColor || "#ffffff";
+  context.fillRect(0, 0, masterIconSize, masterIconSize);
+
+  if (!sourceImage) {
+    const text = String(project.icon.text ?? "");
+    context.fillStyle = project.icon.foregroundColor || "#1a2130";
+    context.textAlign = "center";
+    context.textBaseline = "middle";
+    context.font = `700 ${getTextOverlayFontSize(text, masterIconSize, scaleMultiplier)}px Inter, Arial, sans-serif`;
+    context.fillText(text, masterIconSize / 2, Math.round(masterIconSize * 0.52));
+    return canvas;
+  }
+
+  const artworkScale = getContainedArtworkScale(project, scaleMultiplier);
+  const scaledSize = Math.max(1, Math.round(masterIconSize * artworkScale));
+  const { x, y } = getArtworkOffset(project, masterIconSize);
+  const left = clampNumber(Math.round((masterIconSize - scaledSize) / 2 + x), 0, masterIconSize - scaledSize);
+  const top = clampNumber(Math.round((masterIconSize - scaledSize) / 2 + y), 0, masterIconSize - scaledSize);
+  const artworkCanvas = createRenderCanvas(masterIconSize);
+  const artworkContext = artworkCanvas.getContext("2d");
+
+  if (!artworkContext) {
+    throw new Error("Canvas rendering is not available in this browser.");
+  }
+
+  configureCanvasContext(artworkContext);
+  artworkContext.clearRect(0, 0, masterIconSize, masterIconSize);
+  artworkContext.drawImage(sourceImage, left, top, scaledSize, scaledSize);
+
+  context.save();
+  context.globalCompositeOperation = project.icon.blendWhiteBackground ? "multiply" : "source-over";
+  context.drawImage(artworkCanvas, 0, 0);
+  context.restore();
+
+  return canvas;
+}
+
+async function renderOutputBlob(masterCanvas, pixelSize) {
+  const canvas = createRenderCanvas(pixelSize);
+  const context = canvas.getContext("2d");
+
+  if (!context) {
+    throw new Error("Canvas rendering is not available in this browser.");
+  }
+
+  configureCanvasContext(context);
+  context.clearRect(0, 0, pixelSize, pixelSize);
+  context.drawImage(masterCanvas, 0, 0, pixelSize, pixelSize);
+  return canvasToBlob(canvas);
+}
+
+async function buildClientExportZip(project, platforms) {
+  if (!exportZipLibrary) {
+    throw new Error("The export library did not load. Refresh the page and try again.");
+  }
+
+  const zip = new exportZipLibrary();
+  const packageRootName = resolveExportFileName(
+    project.icon?.exportFileName ||
+    project.name
+  );
+  const sourceImage = project.icon.assetDataUrl
+    ? await loadImageSource(project.icon.assetDataUrl)
+    : null;
+  const masterIcons = {
+    android: platforms.includes("android")
+      ? renderMasterIconCanvas(project, sourceImage)
+      : null,
+    ios: platforms.includes("ios")
+      ? renderMasterIconCanvas(project, sourceImage, { scaleMultiplier: iosArtworkScaleMultiplier })
+      : null
+  };
+
+  if (platforms.includes("android")) {
+    await Promise.all(
+      androidExportSpecs.map(async (item) => {
+        const outputBlob = await renderOutputBlob(masterIcons.android, getOutputPixelSize(item.size));
+        const targetPath = item.folder === "play-store"
+          ? `${packageRootName}/${item.file}`
+          : `${packageRootName}/android/${item.folder}/${item.file}`;
+
+        zip.file(targetPath, outputBlob, { compression: "STORE" });
+      })
+    );
+  }
+
+  if (platforms.includes("ios")) {
+    const iosImages = getIosImageSpecs();
+
+    await Promise.all(
+      iosImages.map(async (item) => {
+        const outputBlob = await renderOutputBlob(masterIcons.ios, item.pixelSize);
+        zip.file(`${packageRootName}/Assets.xcassets/AppIcon.appiconset/${item.file}`, outputBlob, { compression: "STORE" });
+      })
+    );
+
+    zip.file(
+      `${packageRootName}/appstore.png`,
+      await renderOutputBlob(masterIcons.ios, 1024),
+      { compression: "STORE" }
+    );
+    zip.file(
+      `${packageRootName}/Assets.xcassets/AppIcon.appiconset/Contents.json`,
+      JSON.stringify(buildIosContentsJson(), null, 2),
+      {
+        compression: "DEFLATE",
+        compressionOptions: { level: 6 }
+      }
+    );
+  }
+
+  return zip.generateAsync({
+    type: "blob",
+    compression: "DEFLATE",
+    compressionOptions: {
+      level: 1
+    }
+  });
+}
+
+async function syncExportRecord(projectPayload, selectedPlatforms) {
+  const analytics = getAnalyticsContext({
+    projectId: state.projectId,
+    projectName: resolveProjectName(state.projectName),
+    exportTarget: selectedPlatforms.length === 2 ? "both" : selectedPlatforms[0],
+    selectedPlatforms
+  });
+  const response = await fetch("/api/public/exports", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      ...getTrackingHeaders()
+    },
+    body: JSON.stringify({
+      projectId: state.projectId,
+      project: projectPayload,
+      platforms: selectedPlatforms,
+      exportFileName: state.exportFileName,
+      ...analytics,
+      analytics
+    })
+  });
+
+  if (!response.ok) {
+    throw new Error("The ZIP downloaded, but export analytics could not be synced.");
+  }
+
+  return response.json();
+}
+
 function parseHexColor(color) {
   const hex = String(color || "").trim().replace("#", "");
 
@@ -495,7 +788,7 @@ function getIosPreviewLabel(name) {
 }
 
 function getCurrentIconText() {
-  return deriveIconText(state.projectName);
+  return deriveIconText(defaultProjectName);
 }
 
 function getIconTextFontSize(text, mode) {
@@ -628,15 +921,10 @@ function render() {
   const zoomPct = Math.round((state.zoom - 1) * 100);
   const zoomEl = document.querySelector("#zoom-output");
   const paddingEl = document.querySelector("#padding-output");
-  state.exportFileName = resolveExportFileName(state.projectName);
+  state.projectName = resolveProjectName(state.projectName);
+  state.exportFileName = resolveExportFileName();
   if (zoomEl) zoomEl.textContent = `${zoomPct >= 0 ? '+' : ''}${zoomPct}% zoom`;
   if (paddingEl) paddingEl.textContent = `${state.padding}px`;
-  if (elements.projectName) {
-    elements.projectName.value = state.projectName;
-  }
-  if (elements.exportFileName) {
-    elements.exportFileName.value = state.exportFileName;
-  }
   if (elements.bgColor) {
     elements.bgColor.value = state.backgroundColor;
   }
@@ -688,8 +976,8 @@ function render() {
 }
 
 function syncStateFromInputs() {
-  state.projectName = elements.projectName?.value || state.projectName;
-  state.exportFileName = resolveExportFileName(state.projectName);
+  state.projectName = defaultProjectName;
+  state.exportFileName = defaultExportFileName;
   state.backgroundColor = elements.bgColor?.value || state.backgroundColor;
   state.foregroundColor = elements.fgColor?.value || state.foregroundColor;
   state.shape = elements.shape?.value || state.shape;
@@ -787,11 +1075,11 @@ async function saveProject() {
 
   const data = await response.json();
   state.projectId = data.project.id;
-  state.projectName = data.project.name || resolvedProjectName;
+  state.projectName = resolveProjectName(data.project.name || resolvedProjectName);
   state.assetDataUrl = data.project.icon.assetDataUrl || null;
   state.assetName = data.project.icon.assetName || "";
   state.assetMimeType = data.project.icon.assetMimeType || "";
-  state.exportFileName = resolveExportFileName(data.project.name || resolvedProjectName);
+  state.exportFileName = defaultExportFileName;
   state.blendWhiteBackground = Boolean(data.project.icon.blendWhiteBackground);
   if (elements.apiStatus) {
     elements.apiStatus.textContent = `Project saved: ${data.project.name} (${data.project.id.slice(0, 8)})`;
@@ -800,7 +1088,7 @@ async function saveProject() {
 }
 
 function buildProjectPayload() {
-  const resolvedProjectName = resolveProjectName(state.projectName);
+  const resolvedProjectName = defaultProjectName;
   const iconText = getCurrentIconText();
   const analytics = getAnalyticsContext({
     projectName: resolvedProjectName,
@@ -820,7 +1108,7 @@ function buildProjectPayload() {
       assetDataUrl: state.assetDataUrl,
       assetName: state.assetName,
       assetMimeType: state.assetMimeType,
-      exportFileName: state.exportFileName,
+      exportFileName: defaultExportFileName,
       text: iconText,
       autoText: true,
       backgroundColor: state.backgroundColor,
@@ -882,49 +1170,31 @@ async function generateExportPlan() {
   renderPlatformSelection();
   const exportStartedAt = Date.now();
   const platformLabel = selectedPlatforms.length === 2 ? "Android and iOS" : selectedPlatforms[0] === "ios" ? "iOS" : "Android";
-  setExportMessage(`Preparing your ${platformLabel} export package. The download will start automatically.`);
+  setExportMessage(`Preparing your ${platformLabel} export package in the browser. The download will start automatically.`);
   if (elements.apiStatus) {
-    elements.apiStatus.textContent = `Building ${platformLabel} export zip...`;
+    elements.apiStatus.textContent = `Building ${platformLabel} export zip in your browser...`;
   }
 
   await waitForNextPaint();
-
-  const response = await fetch("/api/public/exports", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      ...getTrackingHeaders()
-    },
-    body: JSON.stringify({
-      projectId: state.projectId,
-      project: projectPayload,
-      platforms: selectedPlatforms,
-      exportFileName: state.exportFileName,
-      ...getAnalyticsContext({
-        projectId: state.projectId,
-        projectName: resolveProjectName(state.projectName)
-      }),
-      analytics: getAnalyticsContext({
-        projectId: state.projectId,
-        projectName: resolveProjectName(state.projectName)
-      })
-    })
+  void trackClientEvent("export_started", {
+    projectId: state.projectId,
+    projectName: resolveProjectName(state.projectName),
+    exportTarget: selectedPlatforms.length === 2 ? "both" : selectedPlatforms[0],
+    selectedPlatforms
   });
 
-  if (!response.ok) {
-    await delay(Math.max(0, minimumExportLoadingMs - (Date.now() - exportStartedAt)));
-    state.isExporting = false;
-    renderPlatformSelection();
-    throw new Error("Unable to generate export zip");
-  }
-
-  const fileName =
-    extractFilename(response.headers.get("Content-Disposition")) ||
-    `${state.exportFileName}.zip`;
-  state.projectId = response.headers.get("X-Project-Id") || state.projectId;
-  const zipBlob = await response.blob();
-
+  const fileName = `${defaultExportFileName}.zip`;
+  const zipBlob = await buildClientExportZip(projectPayload, selectedPlatforms);
   downloadBlob(zipBlob, fileName);
+
+  let syncError = null;
+
+  try {
+    const exportRecord = await syncExportRecord(projectPayload, selectedPlatforms);
+    state.projectId = exportRecord.export?.projectId || exportRecord.project?.id || state.projectId;
+  } catch (error) {
+    syncError = error;
+  }
 
   state.lastExportFileName = fileName;
   state.lastExportAt = new Date().toLocaleString();
@@ -933,13 +1203,14 @@ async function generateExportPlan() {
   renderPlatformSelection();
   setExportMessage(buildExportSummary(fileName, selectedPlatforms));
   if (elements.apiStatus) {
-    elements.apiStatus.textContent = `Export ready: ${fileName}`;
+    elements.apiStatus.textContent = syncError
+      ? `Export ready locally: ${fileName}. Analytics sync skipped.`
+      : `Export ready: ${fileName}`;
   }
 }
 
 function bindEvents() {
   [
-    elements.projectName,
     elements.bgColor,
     elements.fgColor,
     elements.shape,
