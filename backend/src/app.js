@@ -11,6 +11,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const websiteDirectory = path.resolve(__dirname, "../../website");
 const adminDirectory = path.resolve(__dirname, "../../admin");
+const projectRootDirectory = path.resolve(__dirname, "../..");
 
 app.use(express.json({ limit: "10mb" }));
 app.use("/website", express.static(websiteDirectory));
@@ -34,6 +35,38 @@ app.get("/", (_req, res) => {
 
 app.get("/admin", (_req, res) => {
   res.sendFile(path.join(adminDirectory, "index.html"));
+});
+
+app.get("/about", (_req, res) => {
+  res.sendFile(path.join(projectRootDirectory, "about.html"));
+});
+
+app.get("/privacy-policy", (_req, res) => {
+  res.sendFile(path.join(projectRootDirectory, "privacy-policy.html"));
+});
+
+app.get("/privacy-policy.html", (_req, res) => {
+  res.sendFile(path.join(projectRootDirectory, "privacy-policy.html"));
+});
+
+app.get("/sitemap.xml", (_req, res) => {
+  res.sendFile(path.join(projectRootDirectory, "sitemap.xml"));
+});
+
+app.get("/ads.txt", (_req, res) => {
+  res.sendFile(path.join(projectRootDirectory, "ads.txt"));
+});
+
+app.get("/android-icon-generator", (_req, res) => {
+  res.sendFile(path.join(websiteDirectory, "android-icon-generator.html"));
+});
+
+app.get("/app-icon-generator", (_req, res) => {
+  res.sendFile(path.join(websiteDirectory, "app-icon-generator.html"));
+});
+
+app.get("/app-icon-generator-free", (_req, res) => {
+  res.sendFile(path.join(websiteDirectory, "app-icon-generator-free.html"));
 });
 
 app.get("*", (req, res, next) => {

@@ -233,6 +233,24 @@ p {
   margin: 0;
 }
 
+.site-footer-links {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+}
+
+.site-footer-links a {
+  color: var(--muted);
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.site-footer-links a:hover {
+  color: var(--ink);
+}
+
 .legal-shell {
   width: min(980px, calc(100% - 32px));
 }
