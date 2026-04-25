@@ -514,28 +514,32 @@ function clampNumber(value, min, max) {
   return Math.min(Math.max(value, min), max);
 }
 
-function getArtworkScale(project) {
-  const padding = Number(project.icon.padding ?? 18);
-  const zoom = Number(project.icon.zoom ?? 1);
-  const basePercent = 96 - Math.min(24, padding * 0.55);
+function getAssetSizePercentFromPadding(paddingValue, mode = "preview") {
+  const padding = Number(paddingValue ?? 18);
 
-  return clampNumber((Math.max(76, basePercent) / 100) * zoom, 0.28, 1.6);
+  if (mode === "ios-preview") {
+    const baseSize = 84 - Math.min(14, padding * 0.42);
+    return Math.max(62, baseSize);
+  }
+
+  const baseSize = mode === "editor"
+    ? 100 - Math.min(42, padding * 1.35)
+    : 96 - Math.min(24, padding * 0.55);
+
+  return Math.max(mode === "editor" ? 68 : 76, baseSize);
 }
 
-function getContainedArtworkScale(project, scaleMultiplier = 1) {
-  const padding = Number(project.icon.padding ?? 18);
-  const zoom = Number(project.icon.zoom ?? 1);
-  const baseScale = getArtworkScale(project) * scaleMultiplier;
-  const paddingBias = clampNumber((padding - 18) * 0.004, -0.04, 0.06);
-  const zoomBias = clampNumber((zoom - 1) * 0.18, -0.08, 0.1);
-  const safeScale = clampNumber(0.62 + paddingBias + zoomBias, 0.5, 0.76);
+function getExportArtworkScale(project, scaleMultiplier = 1) {
+  const padding = Number(project.icon?.padding ?? 18);
+  const zoom = Number(project.icon?.zoom ?? 1);
+  const sizePercent = getAssetSizePercentFromPadding(padding, "preview");
 
-  return Math.min(baseScale, safeScale);
+  return clampNumber((sizePercent / 100) * zoom * scaleMultiplier, 0.1, 2);
 }
 
 function getArtworkOffset(project, size) {
-  const x = Number(project.icon.positionX ?? 0);
-  const y = Number(project.icon.positionY ?? 0);
+  const x = Number(project.icon?.positionX ?? 0);
+  const y = Number(project.icon?.positionY ?? 0);
   const ratio = size / editorReferenceSize;
 
   return {
@@ -614,7 +618,7 @@ function renderMasterIconCanvas(project, sourceImage, options = {}) {
     return canvas;
   }
 
-  const artworkScale = getContainedArtworkScale(project, scaleMultiplier);
+  const artworkScale = getExportArtworkScale(project, scaleMultiplier);
   const scaledSize = Math.max(1, Math.round(masterIconSize * artworkScale));
   const { x, y } = getArtworkOffset(project, masterIconSize);
   const left = clampNumber(Math.round((masterIconSize - scaledSize) / 2 + x), 0, masterIconSize - scaledSize);
@@ -628,7 +632,15 @@ function renderMasterIconCanvas(project, sourceImage, options = {}) {
 
   configureCanvasContext(artworkContext);
   artworkContext.clearRect(0, 0, masterIconSize, masterIconSize);
-  artworkContext.drawImage(sourceImage, left, top, scaledSize, scaledSize);
+  const sourceWidth = Number(sourceImage.naturalWidth || sourceImage.width || 0);
+  const sourceHeight = Number(sourceImage.naturalHeight || sourceImage.height || 0);
+  const aspectRatio = sourceWidth > 0 && sourceHeight > 0 ? sourceWidth / sourceHeight : 1;
+  const targetWidth = aspectRatio >= 1 ? scaledSize : Math.max(1, Math.round(scaledSize * aspectRatio));
+  const targetHeight = aspectRatio >= 1 ? Math.max(1, Math.round(scaledSize / aspectRatio)) : scaledSize;
+  const containedLeft = left + Math.round((scaledSize - targetWidth) / 2);
+  const containedTop = top + Math.round((scaledSize - targetHeight) / 2);
+
+  artworkContext.drawImage(sourceImage, containedLeft, containedTop, targetWidth, targetHeight);
 
   context.save();
   context.globalCompositeOperation = project.icon.blendWhiteBackground ? "multiply" : "source-over";
@@ -829,16 +841,7 @@ function ensureAssetImage(element) {
 }
 
 function getAssetSize(mode) {
-  if (mode === "ios-preview") {
-    const baseSize = 84 - Math.min(14, state.padding * 0.42);
-    return Math.max(62, baseSize);
-  }
-
-  const baseSize = mode === "editor"
-    ? 100 - Math.min(42, state.padding * 1.35)
-    : 96 - Math.min(24, state.padding * 0.55);
-
-  return Math.max(mode === "editor" ? 68 : 76, baseSize);
+  return getAssetSizePercentFromPadding(state.padding, mode);
 }
 
 function updateIosPreviewTheme() {

@@ -126,28 +126,32 @@ function getOutputPixelSize(sizeLabel, scaleLabel = "1x") {
   return Math.round(baseSize * scale);
 }
 
-function getArtworkScale(project) {
-  const padding = Number(project.icon.padding ?? 18);
-  const zoom = Number(project.icon.zoom ?? 1);
-  const basePercent = 96 - Math.min(24, padding * 0.55);
+function getAssetSizePercentFromPadding(paddingValue, mode = "preview") {
+  const padding = Number(paddingValue ?? 18);
 
-  return clamp((Math.max(76, basePercent) / 100) * zoom, 0.28, 1.6);
+  if (mode === "ios-preview") {
+    const baseSize = 84 - Math.min(14, padding * 0.42);
+    return Math.max(62, baseSize);
+  }
+
+  const baseSize = mode === "editor"
+    ? 100 - Math.min(42, padding * 1.35)
+    : 96 - Math.min(24, padding * 0.55);
+
+  return Math.max(mode === "editor" ? 68 : 76, baseSize);
 }
 
-function getContainedArtworkScale(project, scaleMultiplier = 1) {
-  const padding = Number(project.icon.padding ?? 18);
-  const zoom = Number(project.icon.zoom ?? 1);
-  const baseScale = getArtworkScale(project) * scaleMultiplier;
-  const paddingBias = clamp((padding - 18) * 0.004, -0.04, 0.06);
-  const zoomBias = clamp((zoom - 1) * 0.18, -0.08, 0.1);
-  const safeScale = clamp(0.62 + paddingBias + zoomBias, 0.5, 0.76);
+function getExportArtworkScale(project, scaleMultiplier = 1) {
+  const padding = Number(project.icon?.padding ?? 18);
+  const zoom = Number(project.icon?.zoom ?? 1);
+  const sizePercent = getAssetSizePercentFromPadding(padding, "preview");
 
-  return Math.min(baseScale, safeScale);
+  return clamp((sizePercent / 100) * zoom * scaleMultiplier, 0.1, 2);
 }
 
 function getArtworkOffset(project, size) {
-  const x = Number(project.icon.positionX ?? 0);
-  const y = Number(project.icon.positionY ?? 0);
+  const x = Number(project.icon?.positionX ?? 0);
+  const y = Number(project.icon?.positionY ?? 0);
   const ratio = size / editorReferenceSize;
 
   return {
@@ -187,7 +191,7 @@ async function buildArtworkLayer(project, sourceAsset, size, scaleMultiplier = 1
     return buildTextOverlaySvg(project, size, scaleMultiplier);
   }
 
-  const artworkScale = getContainedArtworkScale(project, scaleMultiplier);
+  const artworkScale = getExportArtworkScale(project, scaleMultiplier);
   const scaledSize = Math.max(1, Math.round(size * artworkScale));
   const { x, y } = getArtworkOffset(project, size);
   const transparent = { r: 0, g: 0, b: 0, alpha: 0 };

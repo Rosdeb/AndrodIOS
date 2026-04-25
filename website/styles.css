@@ -175,6 +175,10 @@ p {
   align-items: start;
 }
 
+.editor-layout > * {
+  min-width: 0;
+}
+
 .panel {
   position: relative;
   padding: 18px;
@@ -208,11 +212,13 @@ p {
 
 .preview-panel {
   min-height: 760px;
+  min-width: 0;
 }
 
 .preview-rail {
   display: grid;
   gap: 14px;
+  min-width: 0;
 }
 
 .site-footer {
@@ -699,6 +705,7 @@ input[type="range"],
   display: flex;
   gap: 8px;
   flex-wrap: wrap;
+  min-width: 0;
 }
 
 .pack-stat-card {
@@ -720,6 +727,7 @@ input[type="range"],
   gap: 10px;
   flex-wrap: wrap;
   margin-top: 8px;
+  min-width: 0;
 }
 
 .export-platform-selector-inline {
@@ -793,6 +801,7 @@ input[type="range"],
   display: flex;
   flex-direction: column;
   padding-top: 0;
+  min-width: 0;
 }
 
 .canvas-panel .panel-heading {
@@ -813,6 +822,8 @@ input[type="range"],
 
 .canvas-display {
   position: relative;
+  width: 100%;
+  max-width: 100%;
   min-height: 470px;
   border-radius: 20px;
   border: 1px solid var(--stroke);
@@ -826,10 +837,14 @@ input[type="range"],
 
 .studio-preview-layout {
   display: grid;
-  grid-template-columns: minmax(360px, 1fr) 320px;
+  grid-template-columns: minmax(0, 1fr) minmax(220px, 320px);
   gap: 28px;
   align-items: center;
   min-height: 100%;
+}
+
+.studio-preview-layout > * {
+  min-width: 0;
 }
 
 .studio-canvas-stage {
@@ -889,6 +904,8 @@ input[type="range"],
   align-self: stretch;
   justify-items: center;
   padding-top: 6px;
+  width: 100%;
+  min-width: 0;
 }
 
 .device-preview-header {
@@ -1249,6 +1266,8 @@ input[type="range"],
   display: flex;
   align-items: center;
   gap: 10px;
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 
 .api-status.is-loading::before {
@@ -1980,6 +1999,17 @@ input[type="range"],
 .blend-toggle-row label {
   font-size: 0.85rem;
   color: var(--ink);
+}
+
+@media (max-width: 1280px) {
+  .studio-preview-layout {
+    grid-template-columns: minmax(0, 1fr) 240px;
+    gap: 20px;
+  }
+
+  .canvas-display {
+    padding: 20px;
+  }
 }
 
 @media (max-width: 1120px) {
